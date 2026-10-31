@@ -1,0 +1,124 @@
+<!-- wp:paragraph -->
+<p><em>In 1900 farms covered about a fifth of the world's ice-free land. Today they cover more than a third. I put the two maps side by side to see where the new fields and pastures came from, which forests went, and where the trees came back.</em></p>
+<!-- /wp:paragraph -->
+
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://maps.tristanhotham.com/land-cover-1900/">Explore the interactive version</a></div>
+<!-- /wp:button -->
+<!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://doi.org/10.5281/zenodo.23847971">Read the paper</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons -->
+
+<!-- wp:paragraph -->
+<p>I have always liked old atlases, the ones with the world's "chief products" stamped across each continent. They made me wonder what the land itself looked like around 1900. Railways and steamships already tied the continents together, and the prairies, the Pampas and the steppe of southern Russia were being ploughed for wheat. But the Brazilian Cerrado was still open savanna, the forests of Sumatra and Borneo were largely intact, and Europe was farmed harder than it is today.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Nobody mapped the world's fields in 1900, but historians of land use have reconstructed them. The best open reconstruction is HYDE, the History Database of the Global Environment, built at Utrecht University. Its latest version, 3.3, estimates cropland, pasture and rangeland on a grid of about 9 km for every period back to 10,000 BCE. I took its maps for 1900 and 2023 and laid one over the other.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_maps.png|Two world maps, 1900 above and 2023 below, shading each 9 km square by the share of its land used for crops or grazing, from pale cream to dark brown. In 1900 the darkest areas are Europe, the eastern United States, India and eastern China; by 2023 dark brown spreads across the American West, Mexico, southern Brazil and Argentina, the Sahel, southern and eastern Africa, the Kazakh and Mongolian steppes, Southeast Asia and eastern Australia|Farmland (cropland plus grazing land) as a share of the land, 1900 and 2023, from HYDE 3.3.}}
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">Farmland doubled</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>In HYDE's estimate the world had {{hyde.crop_1900_km2|m1}} million km² of cropland in 1900 and {{hyde.crop_2023_km2|m1}} million in 2023. Grazing land grew from {{hyde.graz_1900_km2|m1}} to {{hyde.graz_2023_km2|m1}} million km². Together, farmland went from {{hyde.farm_1900_pct|pc}} of the ice-free land to {{hyde.farm_2023_pct|pc}}. The extra {{hyde.farm_gain_km2|m1}} million km² is {{hyde.farm_gain_vs_us|f1}} times the area of the United States.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:paragraph -->
+<p>Most of that is grazing, and most grazing land is rangeland: natural grass, scrub and savanna with cattle, sheep or goats on it, as across inland Australia, the Sahel and the steppes. From the air much of it would still look wild. The longer view shows when it happened. In the earlier HYDE 3.2 series, farmland grew by {{series.farm_1700_1900_gain_km2|m1}} million km² in the two centuries before 1900 and by {{series.farm_1900_1950_gain_km2|m1}} million in the fifty years after.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_series.png|Stacked area chart of world cropland (gold) and grazing land (green) from 1700 to 2016. The total rises slowly from about 10 million km² in 1700 to 25 million in 1900, then steeply to about 48 million by 1990, and almost levels off after that. Circles mark the HYDE 3.3 values for 1900 and 2023|World cropland and grazing land since 1700, million km². HYDE 3.2 world totals; dots are HYDE 3.3.}}
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">The frontier moved south</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Every region of the world gained farmland except one. The biggest gains were in sub-Saharan Africa and South America, then East Asia and Oceania. By country, China, Brazil and Australia each added more than two million km². In Brazil much of the new farmland was cleared: the Cerrado went from {{change.hotspots.cerrado.farm_1900_pct|pc}} farmed to {{change.hotspots.cerrado.farm_2023_pct|pc}}. In Southeast Asia it was mostly cropland, with rice, rubber and oil palm taking the farmed share from {{change.hotspots.se_asia.farm_1900_pct|pc}} to {{change.hotspots.se_asia.farm_2023_pct|pc}}. The Sahel went from {{change.hotspots.sahel.farm_1900_pct|pc}} to {{change.hotspots.sahel.farm_2023_pct|pc}}.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_change.png|World map of the change in farmland between 1900 and 2023, in percentage points of the land. Dark brown gains cover the American West, Mexico, the Brazilian Cerrado and Argentina, the Sahel, southern Africa, Central Asia, Southeast Asia and Australia; teal losses mark western and central Europe and the eastern United States. Labels point to the Great Plains, Eastern US, Europe, Sahel, Brazilian Cerrado, Kazakh steppe, Southeast Asia and the Australian wheat belt|Change in farmland, percentage points of the land, 1900 to 2023. Brown: more. Teal: less.}}
+
+<!-- wp:paragraph -->
+<p>The old frontiers barely moved. The US Midwest was already {{change.hotspots.midwest.farm_1900_pct|pc}} farmland in 1900, and it still is. The prairie had been ploughed in the half century before, so the great American change happened earlier than my maps can show.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_regions.png|Horizontal bar chart of the change in farmland by region from 1900 to 2023, in million km²: sub-Saharan Africa +5.7, South America +4.7, East Asia +2.5, Oceania +2.4, North Africa and West Asia +2.1, North America +1.6, Central Asia, South Asia and Southeast Asia +1.2 each, Central America and Caribbean +0.9, Russia +0.5 and Europe -0.4. Brackets give the share of land farmed in 1900 and 2023|Change in farmland by region, 1900 to 2023, with the share of ice-free land farmed in each year.}}
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">Forests: gone in the tropics, back in the north</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>HYDE does not map forest, but it does know where forest would grow naturally, and how much of that forest zone is farmed. In 1900 it was {{forest.cleared_1900_pct|pc}}; now it is {{forest.cleared_2023_pct|pc}}. That net change hides two movements. Brazil, China, Indonesia, Australia and India brought the most forest-zone land into farming. Meanwhile, {{forest.gross_loss_km2|m1}} million km² went out of farming, {{change.gross_loss_share_us_europe_russia_pct|pc}} of it in Europe, Russia and the United States. East of 90°W in the United States, the farmed share of the forest zone fell from {{change.east_us.c1900_pct|pc}} to {{change.east_us.c2023_pct|pc}}, as farms from New England to the Appalachians were given up and much of the land grew back to woods.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_forest.png|World map of the natural forest zone. Unfarmed forest zone is green across Canada, Siberia, the Amazon and the Congo. Dark red marks where the farmed share rose by 10 points or more since 1900: the Brazilian Atlantic coast and Cerrado edge, Central America, West Africa, India, China, Southeast Asia and south-eastern Australia. Teal marks where it fell by 10 points or more: most of western and central Europe and the eastern United States|The natural forest zone in 2023, and where farming advanced or retreated by 10 points or more since 1900.}}
+
+<!-- wp:pullquote -->
+<figure class="wp-block-pullquote"><blockquote><p>The forests that came back are in the countries that cleared theirs first. The forests going now are in the tropics.</p></blockquote></figure>
+<!-- /wp:pullquote -->
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">Desert, forest, ice</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>HYDE also sorts every cell into an anthrome, from cities through villages, croplands and rangelands to seminatural and wild land. The surprise is that the wildlands hardly shrank: {{anthromes.wild_1900_pct|pc}} of the ice-free land in 1900, {{anthromes.wild_2023_pct|pc}} now. They are the deserts, the tundra and the boreal forests, too dry, cold or remote to farm. What went was the middle: seminatural land, inhabited but mostly natural, fell from {{anthromes.semi_1900_pct|pc}} to {{anthromes.semi_2023_pct|pc}}.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_anthromes.png|Two stacked bars comparing anthrome groups in 1900 and 2023 as shares of ice-free land. Rangelands grow from 22% to 28%, croplands from 10% to 15% and villages from 3% to 8%, while seminatural lands shrink from 40% to 24% and wildlands stay at about 25% and 24%|Anthromes in 1900 and 2023, share of ice-free land, from HYDE 3.3.}}
+
+<!-- wp:paragraph -->
+<p>To check the present I compared HYDE with what satellites see. MODIS land cover for 2019 shows the world as it is now: forest across the north and the wet tropics, desert across the Sahara, Arabia and inland Australia, and ice on Greenland. It finds forest or woody savanna on {{modis.treecover_in_zone_pct|pc}} of the natural forest zone, less than the {{forest.uncleared_2023_pct|pc}} that HYDE has unfarmed. The difference is land that is not farmed but not forest either: logged, burnt or naturally open.</p>
+<!-- /wp:paragraph -->
+
+{{IMG|b_modis.png|World map of land cover in 2019 from MODIS: dark green forest across Canada, Scandinavia, Siberia, the Amazon, the Congo and Southeast Asia; pale sand-coloured barren land across the Sahara, Arabia, central Asia and inland Australia; light grassland and savanna between them; orange cropland in the US Midwest, Europe, India and eastern China; and pale blue ice over Greenland|Land cover in 2019 from MODIS MCD12C1, grouped IGBP classes.}}
+
+<!-- wp:heading -->
+<h2 class="wp-block-heading">How I did this</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>I used the HYDE 3.3 baseline grids for 1900 and 2023: cropland, pasture, rangeland and converted rangeland, the anthromes, and HYDE's map of the natural forest zone. Farmland is cropland plus all grazing land, as a share of land outside the ice. In the forest zone, "farmed" means cropland, pasture or converted rangeland, so logging and fire do not show. The 1900 map is a model built from old statistics and spread over the land by rules, so trust the countries more than the single squares, and Africa, Asia and Latin America least. The paper sets out every step and caveat.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:buttons -->
+<div class="wp-block-buttons"><!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://maps.tristanhotham.com/land-cover-1900/">Explore the interactive version</a></div>
+<!-- /wp:button -->
+<!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://doi.org/10.5281/zenodo.23847971">Read the paper</a></div>
+<!-- /wp:button -->
+<!-- wp:button -->
+<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="https://github.com/Tristan-Hotham/land-cover-1900">Data and code</a></div>
+<!-- /wp:button --></div>
+<!-- /wp:buttons -->
+
+<!-- wp:heading {"level":3} -->
+<h3 class="wp-block-heading">Notes and sources</h3>
+<!-- /wp:heading -->
+
+<!-- wp:list -->
+<ul class="wp-block-list"><!-- wp:list-item -->
+<li>Klein Goldewijk, K., Beusen, A., Doelman, J. and Stehfest, E. <a href="https://doi.org/10.24416/UU01-94FNH0">History Database of the Global Environment 3.3 (HYDE 3.3)</a>. Utrecht University, CC BY 4.0. Method: Klein Goldewijk et al. (2017), Earth System Science Data 9, 927 to 953.</li>
+<!-- /wp:list-item -->
+<!-- wp:list-item -->
+<li>HYDE 3.2 world totals 1700 to 2016 as republished by Our World in Data, CC BY 4.0.</li>
+<!-- /wp:list-item -->
+<!-- wp:list-item -->
+<li>Friedl, M. and Sulla-Menashe, D. <a href="https://doi.org/10.5067/MODIS/MCD12C1.006">MODIS MCD12C1 land cover type, 2019</a>. NASA LP DAAC, public domain.</li>
+<!-- /wp:list-item -->
+<!-- wp:list-item -->
+<li><a href="https://www.naturalearthdata.com/">Natural Earth</a> outlines and place names (public domain).</li>
+<!-- /wp:list-item -->
+<!-- wp:list-item -->
+<li>I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.</li>
+<!-- /wp:list-item --></ul>
+<!-- /wp:list -->

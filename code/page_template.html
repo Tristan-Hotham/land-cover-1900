@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Desert, Forest, Ice</title>
+<meta name="description" content="The world's land in 1900 and today on one swipe map: cropland, grazing land, cleared forest, wildlands and present-day land cover from HYDE 3.3 and MODIS.">
+<meta property="og:title" content="Desert, forest, ice: the world in 1900 and now">
+<meta property="og:description" content="In 1900 farms covered {{hyde.farm_1900_pct|pc}} of the world's ice-free land. Today they cover {{hyde.farm_2023_pct|pc}}. Swipe between the two and see where the farmland came from, and where forest came back.">
+<meta property="og:image" content="https://maps.tristanhotham.com/land-cover-1900/header.png">
+<meta property="og:url" content="https://maps.tristanhotham.com/land-cover-1900/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Old atlas: paper, ochre fields, forest green, terracotta for clearing, ice blue. */
+:root{
+  --bg:#F7F4EA; --panel:#EEE9DA; --fg:#22231E; --muted:#6B675E; --rule:#DDD6C2; --card:#FFFDF6; --border:#CFC6AE;
+  --hot:#B5562E; --cool:#2F6B4F; --gold:#C9921A; --ice:#7FA8BC; --land:#E9E4D4; --sea:#F2EFE6;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#161814; --panel:#20231D; --fg:#ECEADF; --muted:#A6A291; --rule:#34372E; --card:#1C1F19; --border:#474A3E;
+  --hot:#E58A5F; --cool:#7FC4A0; --gold:#F0C25A; --ice:#9CC3D6; --land:#2A2D25; --sea:#191B16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161814; --panel:#20231D; --fg:#ECEADF; --muted:#A6A291; --rule:#34372E; --card:#1C1F19; --border:#474A3E;
+  --hot:#E58A5F; --cool:#7FC4A0; --gold:#F0C25A; --ice:#9CC3D6; --land:#2A2D25; --sea:#191B16; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 18px/1.62 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:hidden}
+.wrap{max-width:700px;margin:0 auto;padding-block:28px 64px}
+.wrap .bleed{width:min(1180px,calc(100vw - 32px));margin-left:calc((100% - min(1180px,100vw - 32px))/2);margin-right:0}
+a{color:inherit;text-decoration-color:var(--hot);text-underline-offset:3px}
+.kicker{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.kicker b{background:var(--hot);color:#fff;padding:5px 8px;font-weight:500}
+header.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:end;border-bottom:6px double var(--fg);padding-bottom:22px;margin-top:18px}
+h1{font:900 clamp(44px,11vw,96px)/.9 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+h1 .a{color:var(--gold)} h1 .b{color:var(--cool)} h1 .c{color:var(--ice)}
+.mark{width:clamp(78px,16vw,128px);height:auto;display:block}
+.dek{grid-column:1/-1;font-size:21px;line-height:1.42;margin:8px 0 0;max-width:56ch}
+.byline{font:400 13px/1.4 var(--mono);color:var(--muted);margin-top:14px}
+h2{font:800 34px/1.04 var(--display);letter-spacing:-.01em;margin:54px 0 10px;text-wrap:balance}
+h2 .n{font:500 13px/1 var(--mono);color:var(--hot);display:block;letter-spacing:.1em;margin-bottom:10px}
+h3{font:600 20px/1.25 var(--display);margin:28px 0 6px}
+p{margin:0 0 16px}
+.lede::first-letter{font:900 72px/.8 var(--display);float:left;margin:6px 10px 0 0;color:var(--hot)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:26px 0 8px}
+.stats div{background:var(--card);padding:14px 12px}
+.stats b{display:block;font:900 clamp(22px,4.4vw,32px)/1 var(--display);letter-spacing:-.01em}
+.stats b.h{color:var(--hot)} .stats b.c{color:var(--cool)} .stats b.g{color:var(--gold)}
+.stats span{font:400 12px/1.35 var(--mono);color:var(--muted);display:block;margin-top:6px}
+@media (max-width:600px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.figure{margin:26px 0 30px}
+.fig-h{font:600 19px/1.25 var(--display);margin:0 0 4px}
+.fig-sub{font:400 13px/1.45 var(--mono);color:var(--muted);margin:0 0 12px}
+.src{font:400 12px/1.45 var(--mono);color:var(--muted);margin-top:10px}
+.chart{width:100%;position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:var(--mono);fill:var(--fg)}
+.lab{font-size:12px}.lab.m{fill:var(--muted)}.lab.b{font-weight:500}.lab.s{font-size:11px}.lab.w{fill:#fff}
+.tip{position:absolute;pointer-events:none;background:var(--fg);color:var(--bg);font:400 12px/1.45 var(--mono);padding:8px 10px;border-radius:3px;max-width:290px;z-index:1000;transform:translate(-50%,calc(-100% - 12px));display:none}
+.tip b{font-weight:500}
+.controls{display:flex;gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap}
+.scrollrow{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px;max-width:100%}
+.scrollrow .btn{flex:0 0 auto;white-space:nowrap}
+.ctl-l{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:2px;flex:0 0 auto;align-self:center}
+.btn{font:500 12px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:8px 10px;cursor:pointer;min-height:36px}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn:focus-visible,input:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--hot);outline-offset:2px}
+.tabs .btn[aria-pressed="true"]{background:var(--tab,var(--hot));border-color:var(--tab,var(--hot));color:#fff}
+.searchbox{position:relative;flex:1 1 260px;min-width:0}
+input[type=search]{font:400 15px/1 var(--mono);background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 11px;min-height:40px;width:100%}
+.suggest{position:absolute;left:0;right:0;top:100%;margin:2px 0 0;padding:0;list-style:none;background:var(--card);border:1px solid var(--border);z-index:1001;font:400 13px/1.3 var(--mono);display:none;max-height:340px;overflow:auto}
+.suggest li{padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--rule)}
+.suggest li span{color:var(--muted)}
+.suggest li[aria-selected="true"],.suggest li:hover{background:var(--panel)}
+.mapgrid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;align-items:start}
+@media (max-width:900px){.mapgrid{grid-template-columns:1fr}}
+.side{background:var(--card);border:1px solid var(--border);padding:12px 12px 10px;font:400 13px/1.45 var(--mono);max-height:660px;overflow:auto}
+@media (max-width:900px){.side{max-height:none}}
+.side h4{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.side h4:first-child{margin-top:2px}
+.side .big{font:800 26px/1.1 var(--display);margin:2px 0 4px}
+.side .sub{color:var(--muted);font-size:12px;margin:0 0 8px}
+.side table,.leaflet-popup-content table{width:100%;border-collapse:collapse;margin:4px 0 6px}
+.side td,.side th,.leaflet-popup-content td,.leaflet-popup-content th{padding:3px 4px 3px 0;border-bottom:1px solid var(--rule);vertical-align:top;text-align:left;font-weight:400}
+.side th,.leaflet-popup-content th{color:var(--muted);font-size:11px}
+.side td.num,.side th.num,.leaflet-popup-content td.num,.leaflet-popup-content th.num{text-align:right;white-space:nowrap}
+.lubar{display:flex;height:14px;border-radius:2px;overflow:hidden;margin:4px 0 2px;border:1px solid var(--rule)}
+.lubar span{display:block;height:100%}
+.sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.15)}
+.lmap{height:620px;border:1px solid var(--border);background:var(--sea);border-radius:2px}
+@media (max-width:600px){.lmap{height:min(62vh,460px)}}
+.leaflet-container{font:400 12px/1.4 var(--mono);background:var(--sea)}
+.leaflet-popup-content{font:400 12.5px/1.45 var(--mono);margin:10px 12px;min-width:220px}
+.leaflet-popup-content b{font-weight:600}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card);color:var(--fg)}
+.lyrBtn{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;font:600 12px/1 var(--mono);padding:8px 10px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.lyrBtn[aria-expanded="true"]{background:var(--fg);color:var(--bg)}
+.lyrPanel{background:var(--card,var(--bg));color:var(--fg);border:1px solid var(--border);border-radius:3px;padding:10px 12px 8px;margin-top:6px;width:250px;box-shadow:0 2px 10px rgba(0,0,0,.15);font:400 12px/1.3 var(--mono);max-height:min(70vh,520px);overflow:auto}
+.lyrPanel[hidden]{display:none}
+.lyrPanel .row{margin:0 0 9px}
+.lyrPanel label{display:flex;gap:6px;align-items:center;cursor:pointer;font-weight:600}
+.lyrPanel input[type=range]{width:100%;accent-color:var(--fg)}
+.lyrPanel select{font:400 12px var(--mono);background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:2px;padding:2px 4px;width:100%;min-height:0}
+.lyrPanel .sub{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:11px;margin-top:3px}
+.lyrPanel .sub span{flex:0 0 58px}
+.lyrPanel .hd{font:500 10.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:10px 0 7px;border-top:1px solid var(--rule);padding-top:9px}
+.lyrPanel .reset{font:400 11px var(--mono);color:var(--muted);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline}
+.cityL{font:500 11px/1 var(--mono);color:var(--fg);white-space:nowrap;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 2px var(--bg);pointer-events:none}
+.cityL i{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--fg);margin-right:4px;vertical-align:1px}
+.cityL.s{font-size:10px;font-weight:400}
+.cntL{font:700 11px/1 var(--mono);color:var(--fg);white-space:nowrap;text-transform:uppercase;letter-spacing:.06em;opacity:.75;text-shadow:0 0 3px var(--bg),0 0 3px var(--bg);pointer-events:none;text-align:center}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--card);color:var(--fg);border-bottom-color:var(--border)}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--card) 85%,transparent)!important;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--fg)}
+/* swipe */
+.swipe{position:absolute;top:0;bottom:0;width:0;z-index:700;pointer-events:none}
+.swipe .bar{position:absolute;top:0;bottom:0;left:-1.5px;width:3px;background:var(--fg);opacity:.85}
+.swipe .knob{position:absolute;top:50%;left:-19px;width:38px;height:38px;margin-top:-19px;border-radius:50%;background:var(--card);border:2px solid var(--fg);pointer-events:auto;cursor:ew-resize;touch-action:none;display:flex;align-items:center;justify-content:center;font:600 13px/1 var(--mono);color:var(--fg);box-shadow:0 1px 6px rgba(0,0,0,.25)}
+.swipe .tagL,.swipe .tagR{position:absolute;top:10px;font:600 13px/1 var(--mono);background:var(--fg);color:var(--bg);padding:6px 8px;border-radius:2px;white-space:nowrap}
+.swipe .tagL{right:10px}.swipe .tagR{left:10px}
+.swipe[hidden]{display:none}
+.yeartag{position:absolute;left:10px;bottom:28px;z-index:650;font:600 13px/1 var(--mono);background:var(--fg);color:var(--bg);padding:6px 8px;border-radius:2px;pointer-events:none}
+.yeartag:empty{display:none}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font:400 12px/1.3 var(--mono);color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center}
+.legend i{display:inline-block;width:13px;height:13px;margin-right:6px;border-radius:2px;border:1px solid rgba(0,0,0,.15)}
+.legend .grp{font-weight:500;color:var(--fg)}
+.legend .note2{flex-basis:100%}
+.legend .ramp{display:inline-block;width:150px;height:12px;border-radius:2px;margin:0 6px;border:1px solid rgba(0,0,0,.15)}
+.pull{font:600 26px/1.25 var(--display);border-left:6px solid var(--hot);padding:4px 0 4px 18px;margin:30px 0}
+.note{background:var(--panel);border:1px solid var(--rule);padding:14px 16px;font-size:16px;margin:22px 0}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0}
+@media (max-width:760px){.cards{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.cards{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-left:8px solid var(--c,var(--hot));padding:12px 14px;font:400 13px/1.5 var(--mono)}
+.card b{font:600 19px/1.2 var(--display);display:block;margin-bottom:2px}
+.card .big{font:900 26px/1.05 var(--display);margin:6px 0 2px}
+.card .big span{color:var(--muted);font:400 13px/1 var(--mono)}
+.card button{margin-top:8px}
+details{margin:14px 0}
+summary{font:500 13px/1.4 var(--mono);cursor:pointer;color:var(--fg);padding:8px 0}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.cta a{font:500 13px/1 var(--mono);text-decoration:none;border:1px solid var(--fg);padding:11px 14px;border-radius:3px}
+.cta a.p{background:var(--hot);border-color:var(--hot);color:#fff}
+footer{border-top:6px double var(--fg);margin-top:56px;padding-top:16px;font:400 13px/1.55 var(--mono);color:var(--muted)}
+footer p{margin:0 0 10px}
+.theme{position:fixed;right:12px;bottom:12px;z-index:1002}
+.loadmsg{font:400 12px var(--mono);color:var(--muted);min-height:16px}
+@media print{.theme,.controls{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kicker"><b>Data study</b><span>Land</span><span>World, 1900 and now</span></div>
+<header class="hero">
+  <h1><span class="a">Desert</span>, <span class="b">forest</span>, <span class="c">ice</span></h1>
+  <svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><g id="heroMark"></g></svg>
+  <p class="dek">The world in 1900 and now. In 1900 farms covered {{hyde.farm_1900_pct|pc}} of the planet's ice-free land; today they cover {{hyde.farm_2023_pct|pc}}. Swipe between the two maps to see where the new fields and pastures came from, which forests went, and where the trees came back.</p>
+</header>
+<div class="byline">Dr Tristan Hotham · Independent researcher · 2026 · Data: HYDE 3.3 (Klein Goldewijk et al.); MODIS MCD12C1; Natural Earth</div>
+
+<div class="stats">
+  <div><b class="g">{{hyde.farm_1900_pct|pc}} → {{hyde.farm_2023_pct|pc}}</b><span>of ice-free land farmed (crops and grazing), 1900 and 2023</span></div>
+  <div><b class="h">+{{hyde.farm_gain_km2|m1}}m</b><span>km² of new farmland, {{hyde.farm_gain_vs_us|f1}} times the area of the United States</span></div>
+  <div><b class="c">{{forest.cleared_1900_pct|pc}} → {{forest.cleared_2023_pct|pc}}</b><span>of the natural forest zone in farming use</span></div>
+  <div><b>−{{change.europe.farm_chg_km2|am1}}m</b><span>km² less farmland in Europe than in 1900: fields that went back to wood and grass</span></div>
+</div>
+
+<p class="lede">Picture the world in 1900. Steam ships and railways already tie the continents together, and the prairies of North America, the Pampas of Argentina and the steppe of southern Russia are being ploughed for wheat. But most of the Brazilian Cerrado is open savanna, the forests of Sumatra and Borneo are largely intact, much of inland Australia is not yet grazed, and Europe is farmed harder than it is today. What did the land look like then, and how different is it now?</p>
+<p>The best answer comes from <b>HYDE</b>, the History Database of the Global Environment, built at Utrecht University and the Netherlands Environmental Assessment Agency. Its latest version, 3.3, estimates cropland, pasture and rangeland on a grid of 5 arc-minutes (about 9 km at the equator) for every decade back to 10,000 BCE and every year since 2000. For 1900 it rests on old censuses and agricultural statistics, spread over the land by population and suitability; for 2023 on FAO statistics. I set its maps for 1900 and 2023 side by side, add its <b>anthromes</b> (a classification of land into settled, farmed, seminatural and wild), and check the present against a satellite land cover map from <b>MODIS</b>.</p>
+
+<h2><span class="n">01 · The map</span>Swipe from 1900 to now</h2>
+<div class="bleed" id="atlas">
+<div class="controls">
+  <div class="scrollrow tabs" id="viewTabs"><span class="ctl-l">View</span></div>
+</div>
+<div class="controls">
+  <div class="scrollrow tabs" id="layerTabs"><span class="ctl-l">Layer</span></div>
+</div>
+<div class="controls">
+  <div class="searchbox"><input type="search" id="q" placeholder="Search a country or region" aria-label="Search a country or region" autocomplete="off"><ul class="suggest" id="sug" role="listbox"></ul></div>
+</div>
+<div class="controls">
+  <div class="scrollrow" id="focusRow"><span class="ctl-l">Zoom to</span></div>
+</div>
+<div class="mapgrid">
+  <div><div id="map" class="lmap" role="application" aria-label="World land use map, 1900 and 2023"></div>
+    <div class="loadmsg" id="loadMsg"></div>
+    <div class="legend" id="legend"></div></div>
+  <div class="side" id="side" aria-live="polite"></div>
+</div>
+<p class="src" id="mapsrc"></p>
+</div>
+
+<h2><span class="n">02 · Farmland</span>A fifth of the land in 1900, more than a third now</h2>
+<p>HYDE puts the world's cropland at {{hyde.crop_1900_km2|m1}} million km² in 1900 and {{hyde.crop_2023_km2|m1}} million km² in 2023, {{hyde.crop_x|f1}} times as much. Grazing land grew faster, from {{hyde.graz_1900_km2|m1}} to {{hyde.graz_2023_km2|m1}} million km². Together that is {{hyde.farm_1900_km2|m1}} million km² of farmland in 1900 and {{hyde.farm_2023_km2|m1}} million now, out of {{hyde.icefree_km2|m0}} million km² of land free of ice (Antarctica is not on the grid). In 123 years, farming took in another {{hyde.farm_gain_km2|m1}} million km², an area {{hyde.farm_gain_vs_us|f1}} times the size of the United States.</p>
+<div class="figure"><p class="fig-h">The ice-free land in 1900 and 2023</p><p class="fig-sub">Share of {{hyde.icefree_km2|m0}} million km² of ice-free land (Antarctica excluded). HYDE 3.3. Hover for values.</p><div class="chart" id="compChart"></div></div>
+<p>Most of the new farmland is grazing land, and most of that is <b>rangeland</b>: natural grassland, shrubland and savanna grazed by livestock, as across inland Australia, the Sahel or the steppes of Central Asia and China. HYDE counts {{hyde.range_2023_km2|m1}} million km² of it now, against {{hyde.past_2023_km2|m1}} million km² of more intensively managed <b>pasture</b> and {{hyde.conv_2023_km2|m1}} million km² of <b>converted rangeland</b>, grazing land that was once forest. A map of grazing land is therefore not a map of cleared land: much of it would still look wild from the air.</p>
+<div class="figure"><p class="fig-h">World cropland and grazing land, 1700 to 2016</p><p class="fig-sub">Million km². The long series is HYDE 3.2 (the previous version, the latest with yearly world totals I could reuse); the dots are HYDE 3.3 for 1900 and 2023. Hover for values.</p><div class="chart" id="stackChart"></div></div>
+<p>The 20th century did most of the work. In HYDE 3.2's world totals, farmland grew by {{series.farm_1700_1900_gain_km2|m1}} million km² in the two centuries from 1700 to 1900, and by {{series.farm_1900_1950_gain_km2|m1}} million km² in the half century from 1900 to 1950 alone, as railways, steamships and refrigeration opened the grasslands of the Americas, Australia and Russia to the world market. Since 1990 the world total has grown far more slowly: by {{series.farm_1990_2016_gain_km2|m1}} million km² to 2016, against {{series.farm_1950_1990_gain_km2|m1}} million in the four decades before.</p>
+
+<h2><span class="n">03 · Where it happened</span>The tropics, the steppe and the outback</h2>
+<p>Of {{change.n_countries|int}} countries and territories with at least 1,000 km² of land, farmland grew in all but {{change.n_farm_down|int}}. By region, the largest gains were in sub-Saharan Africa and South America, then East Asia and Oceania. Only Europe has less farmland than in 1900.</p>
+<div class="figure"><p class="fig-h">Change in farmland by region, 1900 to 2023</p><p class="fig-sub">Million km², cropland plus grazing land. Labels give the share of the region's ice-free land farmed in 1900 and 2023. Click a bar to zoom the map.</p><div class="chart" id="regChart"></div></div>
+<p>Country by country, China (+{{change.top_farm_gain.0.v|m1}} million km²), Brazil (+{{change.top_farm_gain.1.v|m1}}) and Australia (+{{change.top_farm_gain.2.v|m1}}) gained the most farmland, then the United States, Argentina and Kazakhstan. The kinds of change differ. In Brazil much of it was clearing: the Cerrado, the great savanna of the interior, went from {{change.hotspots.cerrado.farm_1900_pct|pc}} farmed in 1900 to {{change.hotspots.cerrado.farm_2023_pct|pc}} now, and the southern rim of the Amazon from {{change.hotspots.amazon_arc.farm_1900_pct|pc}} to {{change.hotspots.amazon_arc.farm_2023_pct|pc}}. In Australia and China it was mostly new grazing land, much of it dry rangeland. In Southeast Asia it was cropland: rice, rubber and oil palm took the share of farmed land from {{change.hotspots.se_asia.farm_1900_pct|pc}} to {{change.hotspots.se_asia.farm_2023_pct|pc}}.</p>
+<div class="cards" id="hotCards"></div>
+<p>Some famous farm belts were already there in 1900. The US Midwest and Corn Belt was {{change.hotspots.midwest.farm_1900_pct|pc}} farmland in 1900 and is {{change.hotspots.midwest.farm_2023_pct|pc}} now: the prairie had been ploughed in the half century before. The Great Plains further west went from {{change.hotspots.great_plains.farm_1900_pct|pc}} to {{change.hotspots.great_plains.farm_2023_pct|pc}}, the Kazakh steppe, ploughed in the Soviet Virgin Lands campaign of the 1950s, from {{change.hotspots.virgin_lands.farm_1900_pct|pc}} to {{change.hotspots.virgin_lands.farm_2023_pct|pc}}, and the Argentine Pampas from {{change.hotspots.pampas.farm_1900_pct|pc}} to {{change.hotspots.pampas.farm_2023_pct|pc}}.</p>
+<div class="figure"><p class="fig-h">The biggest changes in farmland by country, 1900 to 2023</p><p class="fig-sub">Thousand km², cropland plus grazing land, HYDE 3.3. Click a bar to see the country.</p><div class="chart" id="cChart"></div></div>
+<p>The United Kingdom is one of the countries where little changed in total: farmland covered {{uk.farm_1900_pct|pc}} of its land in 1900 and {{uk.farm_2023_pct|pc}} now. But the mix moved from plough to grass, with cropland down from {{uk.crop_1900_km2|int}} km² to {{uk.crop_2023_km2|int}} km².</p>
+
+<h2><span class="n">04 · Forest</span>Cleared in the tropics, back in Europe and the eastern US</h2>
+<p>HYDE does not map forest itself, but it does map where forest would grow naturally, using the WWF map of the world's biomes, and which of that <b>forest zone</b> is farmed. The forest zone covers {{forest.zone_km2|m1}} million km², {{forest.zone_pct_icefree|pc}} of the ice-free land. In 1900, {{forest.cleared_1900_pct|pc}} of it was under crops, pasture or converted rangeland; in 2023, {{forest.cleared_2023_pct|pc}}. Net, farming took another {{forest.net_km2|m1}} million km² of the forest zone.</p>
+<div class="figure"><p class="fig-h">Share of the natural forest zone in farming use, by region</p><p class="fig-sub">Per cent of the forest zone under cropland, pasture or converted rangeland. Bar: 2023; tick: 1900. HYDE 3.3.</p><div class="chart" id="forChart"></div></div>
+<p>That net figure hides two movements. Across the forest zone, {{forest.gross_gain_km2|m1}} million km² went into farming in places where farming grew, and {{forest.gross_loss_km2|m1}} million km² came out of it in places where farming shrank. Brazil cleared the most (+{{change.top_clear_gain.0.v|absint}} km² in farming use), then China, Indonesia, Australia and India. The land that came out of farming is in the old farm countries: {{change.gross_loss_share_us_europe_russia_pct|pc}} of it is in Europe, Russia and the United States. In the eastern United States, east of 90°W (roughly the Mississippi), farmed land fell from {{change.east_us.c1900_pct|pc}} of the forest zone in 1900 to {{change.east_us.c2023_pct|pc}} now, as farms were given up from New England to the Appalachians and much of the land grew back to woods. In Europe it fell from {{change.europe.cleared_1900_pct|pc}} to {{change.europe.cleared_2023_pct|pc}}, with the largest declines in France, Poland, Italy and Germany.</p>
+<p class="pull">The forests that came back are in the countries that cleared theirs first. The forests going now are in the tropics.</p>
+<p>How does that compare with what satellites see? MODIS, classifying the land at 0.05 degrees in 2019, finds closed forest on {{modis.forest_in_zone_pct|pc}} of HYDE's forest zone, and forest or woody savanna on {{modis.treecover_in_zone_pct|pc}}, below HYDE's {{forest.uncleared_2023_pct|pc}} unfarmed. The difference is land that is not farmed but not forest either: logged, burnt, degraded or naturally open. Cell by cell, the share HYDE has farmed and the share MODIS finds without trees agree only loosely (correlation {{modis.r_cleared_vs_nontree|f2}} across {{modis.n_cells|int}} quarter-degree cells). MODIS's cropland, {{modis.crop_km2|m1}} million km², is {{modis.crop_vs_hyde_pct|pc}} of HYDE's for 2023. Remember both when reading the forest layer: it shows farming in the forest zone, not forest.</p>
+
+<h2><span class="n">05 · Wild, seminatural, used</span>The wild was left alone; the middle was taken</h2>
+<p>The anthromes put every cell into one of 20 classes by its people and its land use: dense settlements, villages, croplands, rangelands, seminatural lands (with some people or use, but mostly natural) and wildlands (no people, no use). In 1900, {{anthromes.used_1900_pct|pc}} of the ice-free land was in the first four, used anthromes. By 2023 it was {{anthromes.used_2023_pct|pc}}.</p>
+<div class="figure"><p class="fig-h">Anthromes in 1900 and 2023</p><p class="fig-sub">Share of ice-free land in each group of anthromes, HYDE 3.3. Hover for values.</p><div class="chart" id="anthChart"></div></div>
+<p>Surprisingly, the wildlands barely moved: {{anthromes.wild_1900_pct|pc}} of the ice-free land in 1900, {{anthromes.wild_2023_pct|pc}} now. Of the land that was wild in 1900, {{anthromes.wild1900_to.wild|pc}} is still classed wild. It is the land that is too cold, too dry or too remote to farm: the Sahara and the Arabian and Australian deserts, the tundra, and the boreal forests of Canada and Siberia, where {{anthromes.wildwood_2023_north50_pct|pc}} of the remaining wild woodlands lie north of 50°N. The great loss was in the middle, the <b>seminatural</b> lands, inhabited but mostly natural, which shrank from {{anthromes.semi_1900_pct|pc}} of the ice-free land to {{anthromes.semi_2023_pct|pc}} as they were turned into croplands, rangelands and villages. Dense settlements, cities and their surroundings, grew {{anthromes.settle_x|f1}} times over, to {{anthromes.settle_2023_pct|pc1}} of the land.</p>
+<div class="cta"><a href="#atlas" data-layer="anth" data-view="swipe">Map: anthromes, 1900 and 2023</a><a href="#atlas" data-layer="modis" data-view="swipe">Map: satellite land cover, 2019</a></div>
+
+<h2><span class="n">06 · What the data can say</span>A model of the past, not a photograph</h2>
+<p>Nobody mapped the world's fields in 1900. HYDE starts from statistics: national and regional censuses of agriculture where they exist, the FAO since 1961, and for earlier years estimates from population and land per person. It then spreads each country's total over its grid using rules: cropland goes where people live and the soil and climate suit crops; grazing goes where it is dry or empty. So the 1900 map is a model. Country totals are better than the pattern inside a country, and a single 9 km cell should not be read literally. The uncertainty grows with distance from good statistics: in 1900 that means much of Africa, Asia and South America.</p>
+<p>There are other limits. HYDE has no forest of its own: its forest zone is potential natural vegetation, and "cleared" means farmed, so logging, fire and plantations do not show. Grazing land includes vast natural rangelands. And HYDE 3.3 has a baseline, a lower and an upper estimate; I use the baseline. The present-day check uses MODIS 2019, a satellite classification with its own errors, at a different time and with different definitions.</p>
+
+<h2><span class="n">07 · How I did this</span>Methods and sources</h2>
+<p><b>Farmland.</b> I summed HYDE 3.3 baseline cropland, pasture, rangeland and converted rangeland (km² per 5 arc-minute cell) for 1900 and 2023. Grazing land is the last three together, as in HYDE. Shares are of HYDE's maximum land area; "ice-free" removes land in the anthrome class "ice, uninhabited". <b>Forest zone.</b> HYDE's general file of potential forest (from the WWF biome map) marks the forest zone; cropland, pasture and converted rangeland inside it count as farmed. Gross gains and losses are the sums of cell-by-cell increases and decreases. <b>Countries and regions</b> come from HYDE's country grid, named with Natural Earth. <b>Anthromes</b> are HYDE's own maps for 1900 and 2023. <b>MODIS</b>: the MCD12C1 IGBP classes for 2019, compared with HYDE on a quarter-degree grid. The map shows all of this on a 10 arc-minute grid (about 18 km). Every number on this page is computed by the scripts in the repository and checked against <code>data/results.json</code>.</p>
+<details><summary>Sources and licences</summary>
+<ul>
+<li>HYDE 3.3 baseline (hyde33_c7_base_mrt2023): Klein Goldewijk, K., Beusen, A., Doelman, J. and Stehfest, E. History Database of the Global Environment 3.3. Utrecht University, DOI <a href="https://doi.org/10.24416/UU01-94FNH0">10.24416/UU01-94FNH0</a>. CC BY 4.0. Method: Klein Goldewijk et al. (2017) Anthropogenic land use estimates for the Holocene, HYDE 3.2. Earth System Science Data 9, 927 to 953.</li>
+<li>HYDE 3.2 world totals 1700 to 2016, as republished by Our World in Data (owid-datasets on GitHub). CC BY 4.0.</li>
+<li>Anthromes: Ellis, E.C. et al. (2010, 2021) classification as implemented in HYDE.</li>
+<li>MODIS MCD12C1 v006 land cover type, 2019: Friedl, M. and Sulla-Menashe, D. NASA LP DAAC, DOI 10.5067/MODIS/MCD12C1.006 (public domain; copy from the MCD12C1-2019-v006 package on GitHub).</li>
+<li>Natural Earth countries and populated places (public domain). Base map tiles © Esri.</li>
+</ul></details>
+
+<div class="cta"><a class="p" href="https://doi.org/10.5281/zenodo.23847971">Read the paper</a><a href="https://github.com/Tristan-Hotham/land-cover-1900">Data and code</a><a href="https://blog.tristanhotham.com/2026/10/31/land-cover-1900/">Blog post</a><a href="https://blog.tristanhotham.com/">Blog home</a></div>
+
+<footer>
+<p>Dr Tristan Hotham, Independent researcher. ORCID <a href="https://orcid.org/0000-0003-4931-9349">0000-0003-4931-9349</a>.</p>
+<p>Cite as: Hotham, T. (2026) Desert, forest, ice: the world's land in 1900 and now, from HYDE 3.3. Zenodo. <a href="https://doi.org/10.5281/zenodo.23847971">https://doi.org/10.5281/zenodo.23847971</a></p>
+<p>Data: HYDE 3.3 (Klein Goldewijk et al., CC BY 4.0) and MODIS MCD12C1 (NASA, public domain). Licence: text, figures and derived data CC BY 4.0, code MIT.</p>
+<p>I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.</p>
+</footer>
+</div>
+<div class="tip" id="tip"></div>
+<button class="btn theme" id="theme" aria-label="Toggle dark mode">◐</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const R = /*RESULTS*/;
+const SITE = /*SITE*/;
+const WORLD = /*WORLD*/;
+const CITIES = /*CITIES*/;
+const fmt = n => n == null || n === "" ? "n/a" : Math.round(n).toLocaleString("en-GB");
+const f1 = n => n == null ? "n/a" : (+n).toLocaleString("en-GB", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const tip = document.getElementById("tip");
+function showTip(h, x, y) { tip.innerHTML = h; tip.style.display = "block"; const w = tip.offsetWidth; x = Math.max(w / 2 + 8, Math.min(innerWidth - w / 2 - 8, x)); tip.style.left = x + scrollX + "px"; tip.style.top = y + scrollY + "px"; }
+function hideTip() { tip.style.display = "none"; }
+document.addEventListener("click", hideTip);
+const NS = "http://www.w3.org/2000/svg";
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const lbl = (svg, x, y, s, cls = "lab", anchor = "start") => { const t = el("text", { x, y, class: cls, "text-anchor": anchor }, svg); t.textContent = s; return t; };
+const redraws = [];
+function resp(box, render) { let last = 0; const go = force => { const w = Math.max(280, Math.round(box.clientWidth)); if (!force && Math.abs(w - last) < 4) return; last = w; box.innerHTML = ""; render(w, w < 560); }; new ResizeObserver(() => go()).observe(box); go(); redraws.push(() => go(true)); }
+const isDark = () => { const r = document.documentElement; return r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const CN = iso => (SITE.cname[iso] || iso);
+const small = () => innerWidth < 900;
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+function mix(a, b, t) { const A = hex(a), B = hex(b); return "#" + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, "0")).join(""); }
+const COL = { crop: "#D9A33B", graz: "#9DB46C", past: "#6F9A3E", range: "#C9CF9A", conv: "#8C8A4A", other: "#D8D2C0", forest: "#2F6B4F", cleared: "#B5562E", gain: "#B5562E", loss: "#2E7D6B", ice: "#BFD9E4" };
+const AG = {}; SITE.agroup.forEach(([k, l, c]) => AG[k] = { l, c });
+
+/* hero mark: a square of land, farmed share 1900 (left) and now (right) */
+(function () {
+  const g = document.getElementById("heroMark"), H = R.hyde;
+  const col = (x, w, p, c) => { el("rect", { x, y: 10, width: w, height: 100, fill: css("--land") || "#E9E4D4" }, g); el("rect", { x, y: 110 - p, width: w, height: p, fill: c }, g); };
+  col(10, 46, H.farm_1900_pct, "#C9921A"); col(64, 46, H.farm_2023_pct, "#B5562E");
+  el("rect", { x: 10, y: 10, width: 100, height: 100, fill: "none", stroke: "currentColor", "stroke-width": 3 }, g);
+  el("line", { x1: 60, x2: 60, y1: 10, y2: 110, stroke: "currentColor", "stroke-width": 3 }, g);
+})();
+
+/* ---------- map machinery ---------- */
+const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+const ESRI_ATT = 'Tiles &copy; Esri, HERE, Garmin, USGS, NGA, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, and the GIS user community';
+const LYDEF = { base: "plain", hills: true, hillK: 45, labels: false, labelK: 80, names: true, nameLvl: 1, cnames: true, borders: true, colour: 85, grid: true };
+const LY = { ...LYDEF };
+try { Object.assign(LY, JSON.parse(localStorage.getItem("lc1900_layers") || "{}")); } catch (e) {}
+const saveLY = () => { try { localStorage.setItem("lc1900_layers", JSON.stringify(LY)); } catch (e) {} };
+const map = L.map("map", { minZoom: 1, maxZoom: 10, maxBounds: [[-75, -200], [86, 200]], zoomSnap: .5, worldCopyJump: false }).setView([22, 12], small() ? 1 : 2);
+["hills:250", "then:410", "now:411", "borders:430", "labels:450", "names:620"].forEach(s => { const [n, z] = s.split(":"); map.createPane(n); map.getPane(n).style.zIndex = z; });
+["hills", "labels", "names", "then", "now", "borders"].forEach(n => map.getPane(n).style.pointerEvents = "none");
+let base = null, hills = null, labels = null; const names = L.layerGroup(), cnames = L.layerGroup();
+function setTiles() {
+  [base, labels, hills].forEach(l => { if (l) map.removeLayer(l); });
+  const t = isDark() ? "Dark" : "Light";
+  const url = LY.base === "relief" ? ESRI + "World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}" : LY.base === "satellite" ? ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}" : `${ESRI}Canvas/World_${t}_Gray_Base/MapServer/tile/{z}/{y}/{x}`;
+  base = L.tileLayer(url, { maxZoom: 16, maxNativeZoom: LY.base === "relief" ? 13 : 16, attribution: ESRI_ATT }).addTo(map);
+  hills = L.tileLayer(ESRI + "Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16, maxNativeZoom: 16, pane: "hills" });
+  labels = L.tileLayer(`${ESRI}Canvas/World_${t}_Gray_Reference/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 16, pane: "labels" });
+  applyLayers();
+}
+function applyLayers() {
+  if (!base) return;
+  if (LY.hills) { hills.addTo(map); hills.setOpacity(Math.min(1, .15 + LY.hillK / 120)); } else map.removeLayer(hills);
+  if (LY.labels) { labels.addTo(map); labels.setOpacity(LY.labelK / 100); } else map.removeLayer(labels);
+  if (LY.names) names.addTo(map); else map.removeLayer(names);
+  if (LY.cnames) cnames.addTo(map); else map.removeLayer(cnames);
+  if (LY.borders) bLayer.addTo(map); else map.removeLayer(bLayer);
+  [thenL, nowL].forEach(l => { if (!l) return; if (LY.grid) { if (!map.hasLayer(l)) l.addTo(map); l.setOpacity(LY.colour / 100); } else if (map.hasLayer(l)) map.removeLayer(l); });
+  placeNames(); setClip();
+}
+function placeNames() {
+  names.clearLayers(); cnames.clearLayers();
+  const z = map.getZoom(), bb = map.getBounds().pad(.05); const boxes = [];
+  if (LY.names) {
+    const minPop = [[2, 8e6], [3, 3e6], [4, 1e6], [5, 4e5], [6, 1.5e5], [99, 6e4]].find(([zz]) => z < zz + (LY.nameLvl === 2 ? 1.5 : LY.nameLvl === 0 ? -1 : 0))[1] * (LY.nameLvl === 0 ? 2 : 1);
+    let n = 0;
+    for (const c of CITIES) {
+      if (c.pop < minPop || !bb.contains([c.lat, c.lon])) continue;
+      const pt = map.latLngToContainerPoint([c.lat, c.lon]), big = c.pop >= 5e6;
+      const bx = [pt.x - 4, pt.y - 8, pt.x + 10 + c.name.length * (big ? 6.9 : 6.3), pt.y + 7];
+      if (boxes.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1])) continue;
+      boxes.push(bx); L.marker([c.lat, c.lon], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "cityL" + (big ? "" : " s"), html: `<i></i>${esc(c.name)}`, iconSize: null, iconAnchor: [3, 6] }) }).addTo(names);
+      if (++n >= 140) break;
+    }
+  }
+  if (LY.cnames && z >= 3 && z < 7) {
+    WORLD.features.forEach(f => { const g = SITE.cpos[f.properties.iso]; if (!g || !bb.contains([g[1], g[0]])) return; const nm = CN(f.properties.iso);
+      if (z < 4 && (g[2] || 0) < 2e7) return; const pt = map.latLngToContainerPoint([g[1], g[0]]), w = nm.length * 7.2;
+      const bx = [pt.x - w / 2, pt.y - 7, pt.x + w / 2, pt.y + 7]; if (boxes.some(o => bx[0] < o[2] && bx[2] > o[0] && bx[1] < o[3] && bx[3] > o[1])) return; boxes.push(bx);
+      L.marker([g[1], g[0]], { pane: "names", interactive: false, keyboard: false, icon: L.divIcon({ className: "cntL", html: esc(nm), iconSize: [w, 14], iconAnchor: [w / 2, 7] }) }).addTo(cnames); });
+  }
+}
+(function layerControl() {
+  const Ctl = L.Control.extend({ options: { position: "topright" }, onAdd() {
+    const d = L.DomUtil.create("div"); L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+    d.innerHTML = `<button class="lyrBtn" aria-expanded="false">Map layers</button>
+<div class="lyrPanel" hidden>
+ <div class="row"><label style="font-weight:600">Base map</label><div class="sub"><select data-k="base" aria-label="Base map"><option value="plain">Plain grey</option><option value="relief">Shaded relief</option><option value="satellite">Satellite</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="hills"> Hills and mountains</label><div class="sub"><span>strength</span><input type="range" data-k="hillK" min="10" max="100" step="5" aria-label="Hill shading strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="labels"> Map labels</label><div class="sub"><span>strength</span><input type="range" data-k="labelK" min="20" max="100" step="5" aria-label="Map label strength"></div></div>
+ <div class="row"><label><input type="checkbox" data-k="names"> Bold city names</label><div class="sub"><span>how many</span><select data-k="nameLvl" aria-label="How many city names"><option value="0">Biggest only</option><option value="1">Some</option><option value="2">Lots</option></select></div></div>
+ <div class="row"><label><input type="checkbox" data-k="cnames"> Country names</label></div>
+ <div class="row"><label><input type="checkbox" data-k="borders"> Borders (today's)</label></div>
+ <div class="hd">Land use</div>
+ <div class="row"><label><input type="checkbox" data-k="grid"> Land use grid (18 km squares)</label></div>
+ <div class="row"><label style="font-weight:600">Colour</label><div class="sub"><span>strength</span><input type="range" data-k="colour" min="20" max="100" step="5" aria-label="Colour strength"></div></div>
+ <button class="reset">Reset layers</button>
+</div>`;
+    return d; } });
+  map.addControl(new Ctl());
+  const box = map.getContainer(), btn = box.querySelector(".lyrBtn"), pan = box.querySelector(".lyrPanel");
+  btn.onclick = () => { const o = pan.hidden; pan.hidden = !o; btn.setAttribute("aria-expanded", o); };
+  const sync = () => pan.querySelectorAll("[data-k]").forEach(i => { const k = i.dataset.k; if (i.type === "checkbox") i.checked = LY[k]; else i.value = LY[k]; });
+  pan.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.type === "range" ? "input" : "change", () => {
+    const k = i.dataset.k; LY[k] = i.type === "checkbox" ? i.checked : (k === "base" ? i.value : +i.value);
+    if (k === "hillK") LY.hills = true; if (k === "labelK") LY.labels = true; if (k === "nameLvl") LY.names = true; if (k === "colour") LY.grid = true;
+    sync(); saveLY(); if (k === "base") setTiles(); else applyLayers();
+  }));
+  pan.querySelector(".reset").onclick = () => { Object.assign(LY, LYDEF); saveLY(); sync(); setTiles(); };
+  sync();
+})();
+L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
+const bLayer = L.geoJSON(WORLD, { pane: "borders", interactive: false, style: () => ({ color: isDark() ? "#6b6e62" : "#8f8772", weight: .6, fill: false, opacity: .8 }) });
+
+/* ---------- state ---------- */
+const S = { view: "swipe", layer: "farm", sel: null, pos: .5 };
+const VIEWS = [["swipe", "Swipe 1900 | 2023", "#22231E"], ["then", "1900", "#C9921A"], ["now", "2023", "#B5562E"], ["change", "Change", "#2E7D6B"]];
+const LAYERS = [["farm", "All farmland", "#8A6A12"], ["crop", "Cropland", "#C9921A"], ["graz", "Grazing land", "#6F9A3E"], ["forest", "Forest zone", "#2F6B4F"], ["anth", "Anthromes", "#5B4B66"], ["modis", "Land cover 2019", "#3E6E8E"]];
+
+/* ---------- grids (PNG, decoded in the browser) ---------- */
+const GG = { w: SITE.grid.w, h: SITE.grid.h, top: SITE.grid.top, cell: SITE.grid.cell };
+const D = {};
+const msg = document.getElementById("loadMsg");
+async function pixels(url) {
+  const blob = await (await fetch(url)).blob();
+  let src; try { src = await createImageBitmap(blob, { colorSpaceConversion: "none", premultiplyAlpha: "none" }); }
+  catch (e) { src = await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = URL.createObjectURL(blob); }); }
+  const c = document.createElement("canvas"); c.width = GG.w; c.height = GG.h; const x = c.getContext("2d", { willReadFrequently: true });
+  x.drawImage(src, 0, 0); return x.getImageData(0, 0, GG.w, GG.h).data;
+}
+const chan = (px, ch) => { const n = GG.w * GG.h, o = new Uint8Array(n); for (let i = 0; i < n; i++) o[i] = px[i * 4 + ch]; return o; };
+const FILES = { g1: ["crop0", "crop1", "land"], g2: ["graz0", "graz1", "fz"], g3: ["past0", "past1", "modis"], g4: ["clr0", "clr1", "an0"], g5: ["an1", "isoHi", "isoLo"] };
+const NEED = { farm: ["g1", "g2"], crop: ["g1"], graz: ["g2"], forest: ["g2", "g4"], anth: ["g4", "g5"], modis: ["g2", "g3"] };
+const loading = {};
+function loadFile(f) { if (!loading[f]) loading[f] = pixels(`data/page/${f}.png`).then(px => { FILES[f].forEach((k, j) => D[k] = chan(px, j)); }); return loading[f]; }
+async function loadFor(layer) { const fs = NEED[layer].concat(["g1"]); if (fs.some(f => !loading[f])) msg.textContent = "Loading the land use grid..."; await Promise.all(fs.map(loadFile)); msg.textContent = ""; }
+const gIdx = (lat, lon) => { const r = Math.floor((GG.top - lat) / GG.cell), c = Math.floor((((lon + 180) % 360 + 360) % 360) / GG.cell); return r < 0 || r >= GG.h || c < 0 || c >= GG.w ? -1 : r * GG.w + c; };
+
+/* colours */
+function ramp(stops, n = 256) { const o = []; for (let i = 0; i < n; i++) { const t = i / (n - 1), k = Math.min(stops.length - 2, Math.floor(t * (stops.length - 1))), u = t * (stops.length - 1) - k; const a = hex(stops[k]), b = hex(stops[k + 1]); o.push([0, 1, 2].map(j => Math.round(a[j] + (b[j] - a[j]) * u))); } return o; }
+const STOPS = { farm: ["#F3E7C4", "#E2C46A", "#C98F2E", "#9A5A22", "#5E3418"], crop: ["#F6EBC8", "#EBCB72", "#D9A33B", "#A8701E", "#6A440E"],
+  graz: ["#EEF2D8", "#CFE09E", "#9DB46C", "#5F8A3A", "#31561E"], chgpos: ["#F6DCC8", "#E7A07A", "#C8653C", "#933A1E", "#5C1E0E"], chgneg: ["#D6EEE6", "#8FCDBB", "#3F9C86", "#1F6B5C"] };
+let RAMP = {};
+const buildRamps = () => { for (const k in STOPS) RAMP[k] = ramp(STOPS[k]); };
+buildRamps();
+const AN = SITE.anth; // [name, group]
+const ANCOL = AN.map(([n, g], i) => { const same = AN.filter(a => a[1] === g); const k = same.findIndex(a => a[0] === n); return mix(AG[g].c, "#ffffff", same.length > 1 ? .45 * k / (same.length - 1) : 0); });
+const IGBP = [["Water", "#A9C8D8"], ["Evergreen needleleaf forest", "#1B4D2E"], ["Evergreen broadleaf forest", "#1F6B3A"], ["Deciduous needleleaf forest", "#3E7A4E"], ["Deciduous broadleaf forest", "#4F8F3E"], ["Mixed forest", "#2F7A4A"],
+  ["Closed shrubland", "#9C8A4E"], ["Open shrubland", "#D9C68E"], ["Woody savanna", "#8FA65A"], ["Savanna", "#C3C26A"], ["Grassland", "#D7DE9A"], ["Permanent wetland", "#5FA3A0"], ["Cropland", "#E3A33B"],
+  ["Urban and built-up", "#8E3A3A"], ["Cropland and natural mosaic", "#D6B868"], ["Permanent snow and ice", "#E6F1F6"], ["Barren", "#EDE2CB"]];
+const IGBPRGB = IGBP.map(x => hex(x[1]));
+const ANRGB = ANCOL.map(hex);
+const FZRGB = hex("#2F6B4F"), CLRGB = hex("#B5562E"), NOFZ = hex("#E3D9BF");
+function colourAt(i, yr) {
+  // yr: 0 = 1900, 1 = 2023, 2 = change
+  if (!D.land || !D.land[i]) return null;
+  const L1 = S.layer;
+  if (yr === 2) {
+    let a = 0, b = 0;
+    if (L1 === "farm") { a = D.crop0[i] + D.graz0[i]; b = D.crop1[i] + D.graz1[i]; }
+    else if (L1 === "crop") { a = D.crop0[i]; b = D.crop1[i]; }
+    else if (L1 === "graz") { a = D.graz0[i]; b = D.graz1[i]; }
+    else if (L1 === "forest") { a = D.clr0[i]; b = D.clr1[i]; }
+    else if (L1 === "anth") { const u = x => x && x <= 13; const a0 = D.an0[i], a1 = D.an1[i]; if (a0 === a1) return null; if (u(a1) && !u(a0)) return [...hex("#B5562E"), 230]; if (u(a0) && !u(a1)) return [...hex("#2E7D6B"), 230]; return [...hex("#B8A98A"), 160]; }
+    else return null;
+    const d = (b - a) / 2.5; if (Math.abs(d) < 2) return null;
+    const t = Math.min(1, Math.abs(d) / 60), c = (d > 0 ? RAMP.chgpos : RAMP.chgneg)[Math.round(t * 255)];
+    return [c[0], c[1], c[2], Math.round(255 * (.45 + .55 * t))];
+  }
+  if (L1 === "farm" || L1 === "crop" || L1 === "graz") {
+    const v = L1 === "farm" ? (yr ? D.crop1[i] + D.graz1[i] : D.crop0[i] + D.graz0[i]) : L1 === "crop" ? (yr ? D.crop1[i] : D.crop0[i]) : (yr ? D.graz1[i] : D.graz0[i]);
+    if (v < 3) return null; const t = Math.min(1, v / 250), c = RAMP[L1][Math.round(t * 255)];
+    return [c[0], c[1], c[2], Math.round(255 * (.35 + .65 * Math.min(1, t * 1.6)))];
+  }
+  if (L1 === "forest") {
+    const fz = D.fz[i]; if (fz < 25) return null; const cl = yr ? D.clr1[i] : D.clr0[i]; const t = Math.min(1, cl / Math.max(1, fz));
+    return [Math.round(FZRGB[0] + (CLRGB[0] - FZRGB[0]) * t), Math.round(FZRGB[1] + (CLRGB[1] - FZRGB[1]) * t), Math.round(FZRGB[2] + (CLRGB[2] - FZRGB[2]) * t), Math.round(255 * Math.min(1, .35 + fz / 250 * .65))];
+  }
+  if (L1 === "anth") { const a = yr ? D.an1[i] : D.an0[i]; if (!a) return null; const c = ANRGB[a - 1]; return [c[0], c[1], c[2], 235]; }
+  if (L1 === "modis") {
+    if (!yr) { const fz = D.fz[i]; return fz >= 125 ? [...FZRGB, 200] : [...NOFZ, 200]; }
+    const m = D.modis[i]; if (!m || m > 16) return null; const c = IGBPRGB[m]; return [c[0], c[1], c[2], 235];
+  }
+  return null;
+}
+const RAD = 180 / Math.PI;
+const GridLayer = L.GridLayer.extend({
+  createTile(c) {
+    const t = document.createElement("canvas"); t.width = t.height = 256;
+    if (!D.land || NEED[S.layer].some(f => !D[FILES[f][0]])) return t;
+    const yr = this.options.yr === "now" ? (S.view === "change" ? 2 : S.view === "then" ? -1 : 1) : (S.view === "then" ? 0 : S.view === "swipe" ? 0 : -1);
+    if (yr < 0) return t;
+    const ctx = t.getContext("2d"), img = ctx.createImageData(256, 256), d = img.data, n = 256 * Math.pow(2, c.z);
+    const cols = new Int32Array(256); for (let i = 0; i < 256; i++) { const lon = (c.x * 256 + i + .5) / n * 360 - 180; cols[i] = Math.floor((((lon + 180) % 360 + 360) % 360) / GG.cell); }
+    for (let j = 0; j < 256; j++) { const y = Math.PI * (1 - 2 * (c.y * 256 + j + .5) / n), lat = Math.atan(Math.sinh(y)) * RAD; const r = Math.floor((GG.top - lat) / GG.cell); if (r < 0 || r >= GG.h) continue;
+      for (let i = 0; i < 256; i++) { const col = colourAt(r * GG.w + cols[i], yr); if (!col || !col[3]) continue; const q = (j * 256 + i) * 4; d[q] = col[0]; d[q + 1] = col[1]; d[q + 2] = col[2]; d[q + 3] = col[3]; } }
+    ctx.putImageData(img, 0, 0); return t;
+  }
+});
+const ATT = "Land use: HYDE 3.3 (Klein Goldewijk et al.); land cover: MODIS MCD12C1";
+const thenL = new GridLayer({ pane: "then", yr: "then", opacity: LY.colour / 100, maxNativeZoom: 8, attribution: ATT });
+const nowL = new GridLayer({ pane: "now", yr: "now", opacity: LY.colour / 100, maxNativeZoom: 8 });
+
+/* swipe divider */
+const sw = document.createElement("div"); sw.className = "swipe"; sw.innerHTML = `<div class="bar"></div><div class="tagL" id="tagL">1900</div><div class="tagR" id="tagR">2023</div><div class="knob" role="slider" tabindex="0" aria-label="Swipe between 1900 and 2023" aria-valuemin="0" aria-valuemax="100"><svg width="20" height="14" viewBox="0 0 20 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 1 7l5 5M14 2l5 5-5 5"/></svg></div>`;
+map.getContainer().appendChild(sw);
+const ytag = document.createElement("div"); ytag.className = "yeartag"; map.getContainer().appendChild(ytag);
+L.DomEvent.disableClickPropagation(sw);
+function setClip() {
+  const tp = map.getPane("then"), np = map.getPane("now");
+  if (S.view !== "swipe") { tp.style.clip = ""; np.style.clip = ""; sw.hidden = true; return; }
+  sw.hidden = false;
+  const size = map.getSize(), nw = map.containerPointToLayerPoint([0, 0]), se = map.containerPointToLayerPoint(size), x = nw.x + size.x * S.pos;
+  tp.style.clip = `rect(${nw.y}px, ${x}px, ${se.y}px, ${nw.x}px)`;
+  np.style.clip = `rect(${nw.y}px, ${se.x}px, ${se.y}px, ${x}px)`;
+  sw.style.left = (size.x * S.pos) + "px";
+  sw.querySelector(".knob").setAttribute("aria-valuenow", Math.round(S.pos * 100));
+}
+(function drag() {
+  const k = sw.querySelector(".knob"); let on = false;
+  const mv = e => { if (!on) return; const r = map.getContainer().getBoundingClientRect(); const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left; S.pos = Math.max(.02, Math.min(.98, x / r.width)); setClip(); e.preventDefault(); };
+  k.addEventListener("pointerdown", e => { on = true; map.dragging.disable(); k.setPointerCapture(e.pointerId); e.preventDefault(); });
+  k.addEventListener("pointermove", mv);
+  const up = () => { on = false; map.dragging.enable(); };
+  k.addEventListener("pointerup", up); k.addEventListener("pointercancel", up);
+  k.addEventListener("keydown", e => { if (e.key === "ArrowLeft") S.pos = Math.max(.02, S.pos - .05); else if (e.key === "ArrowRight") S.pos = Math.min(.98, S.pos + .05); else return; setClip(); e.preventDefault(); });
+})();
+map.on("move zoom viewreset resize zoomend moveend", setClip);
+
+/* cell popup */
+const cellKm2 = lat => { const R0 = 6371.0072, d = GG.cell * Math.PI / 180; return R0 * d * R0 * d * Math.cos(lat * Math.PI / 180); };
+const pc = v => (v / 2.5) >= 99.5 ? "100%" : (v / 2.5) >= 10 ? Math.round(v / 2.5) + "%" : (v / 2.5) >= 0.5 ? f1(v / 2.5) + "%" : v > 0 ? "under 1%" : "none";
+async function cellPopup(ll) {
+  await Promise.all(["g1", "g2", "g3", "g4", "g5"].map(loadFile));
+  const i = gIdx(ll.lat, ll.lng); if (i < 0) return;
+  const r = Math.floor(i / GG.w), c = i % GG.w, la = GG.top - (r + .5) * GG.cell, lo = -180 + (c + .5) * GG.cell;
+  let h = `<b>${Math.abs(la).toFixed(2)}°${la >= 0 ? "N" : "S"}, ${Math.abs(lo).toFixed(2)}°${lo >= 0 ? "E" : "W"}</b>`;
+  if (!D.land[i]) { h += "<br>Sea, or no land in HYDE."; L.popup({ maxWidth: 300 }).setLatLng(ll).setContent(h).openOn(map); return; }
+  const code = D.isoHi[i] * 256 + D.isoLo[i], hc = SITE.hc[code]; if (hc) h += ` · ${esc(hc[0] ? CN(hc[0]) : hc[1])}`;
+  const land = D.land[i] / 250 * cellKm2(la);
+  const row = (n, a, b, sw) => `<tr><td>${sw ? `<span class="sw" style="background:${sw}"></span>` : ""}${n}</td><td class="num">${a}</td><td class="num">${b}</td></tr>`;
+  h += `<table><tr><th>Share of the land</th><th class="num">1900</th><th class="num">2023</th></tr>`;
+  h += row("Cropland", pc(D.crop0[i]), pc(D.crop1[i]), COL.crop) + row("Grazing land", pc(D.graz0[i]), pc(D.graz1[i]), COL.graz) + row("of which pasture", pc(D.past0[i]), pc(D.past1[i]));
+  h += row("<b>All farmland</b>", pc(D.crop0[i] + D.graz0[i]), pc(D.crop1[i] + D.graz1[i]));
+  if (D.fz[i] >= 25) h += row("Farmed forest zone", pc(D.clr0[i]), pc(D.clr1[i]), COL.cleared);
+  h += `</table>`;
+  h += `Anthrome: ${D.an0[i] ? esc(AN[D.an0[i] - 1][0]) : "n/a"} (1900), ${D.an1[i] ? esc(AN[D.an1[i] - 1][0]) : "n/a"} (2023)<br>`;
+  h += `Natural vegetation: ${D.fz[i] >= 125 ? "forest zone" : D.fz[i] >= 25 ? "partly forest zone" : "not forest (grass, scrub, desert or tundra)"}<br>`;
+  const m = D.modis[i]; if (m && m <= 16) h += `Satellite land cover 2019: <span class="sw" style="background:${IGBP[m][1]}"></span>${esc(IGBP[m][0])}<br>`;
+  h += `<small>HYDE 3.3, 10 arc-minute square, ${fmt(land)} km² of land.</small>`;
+  L.popup({ maxWidth: 300 }).setLatLng(ll).setContent(h).openOn(map);
+}
+map.on("click", e => { cellPopup(e.latlng).then(() => pickAt(e.latlng)); });
+function pickAt(ll) { const i = gIdx(ll.lat, ll.lng); if (i < 0 || !D.isoHi) return; const hc = SITE.hc[D.isoHi[i] * 256 + D.isoLo[i]]; if (hc && hc[0] && SITE.c[hc[0]]) { S.sel = hc[0]; side(); } }
+
+/* legend, side panel */
+function legend() {
+  const e = document.getElementById("legend"); let h = "";
+  const rampCss = st => `linear-gradient(90deg,${st.join(",")})`;
+  if (S.view === "change" && S.layer !== "modis") {
+    if (S.layer === "anth") h = `<span><i style="background:#B5562E"></i>Became used (villages, croplands, rangelands, settlements)</span><span><i style="background:#2E7D6B"></i>Became seminatural or wild</span><span><i style="background:#B8A98A"></i>Other change of class</span>`;
+    else h = `<span>Change in share of the land, 1900 to 2023:</span><span>−60 points<span class="ramp" style="background:linear-gradient(90deg,${STOPS.chgneg.slice().reverse().join(",")},#F5F2EA,${STOPS.chgpos.join(",")})"></span>+60 points</span><span class="note2">Brown: more ${S.layer === "forest" ? "of the forest zone farmed" : S.layer === "crop" ? "cropland" : S.layer === "graz" ? "grazing land" : "farmland"}. Teal: less, land that went out of farming. Changes under 2 points are left blank.</span>`;
+  } else if (S.layer === "farm" || S.layer === "crop" || S.layer === "graz") {
+    const nm = { farm: "Cropland and grazing land", crop: "Cropland", graz: "Grazing land (pasture and rangeland)" }[S.layer];
+    h = `<span>${nm}, share of the land:</span><span>1%<span class="ramp" style="background:${rampCss(STOPS[S.layer])}"></span>100%</span>`;
+  } else if (S.layer === "forest") h = `<span>Natural forest zone:</span><span>not farmed<span class="ramp" style="background:linear-gradient(90deg,#2F6B4F,#B5562E)"></span>all farmed</span><span class="note2">Only the forest zone (where forest is the natural vegetation) is coloured. Paler: only part of the square is forest zone. Farmed means cropland, pasture or converted rangeland, not tree cover.</span>`;
+  else if (S.layer === "anth") h = SITE.agroup.map(([k, l, c]) => `<span class="grp"><i style="background:${c}"></i>${esc(l)}</span>`).join("") + `<span class="note2">Lighter shades within a group have fewer people. Click a square for its class.</span>`;
+  else if (S.layer === "modis") h = `<span class="grp">${S.view === "then" || S.view === "swipe" ? "Left or 1900 view: " : ""}</span>` + (S.view !== "now" ? `<span><i style="background:#2F6B4F"></i>Natural forest zone</span><span><i style="background:#E3D9BF"></i>Natural grass, scrub, desert, tundra</span><span class="note2">Satellite (2019): </span>` : "") + IGBP.slice(1).map(([n, c]) => `<span><i style="background:${c}"></i>${esc(n)}</span>`).join("");
+  e.innerHTML = h;
+  const tags = S.layer === "modis" ? ["Natural vegetation", "Satellite 2019"] : ["1900", "2023"];
+  document.getElementById("tagL").textContent = tags[0]; document.getElementById("tagR").textContent = tags[1];
+  ytag.textContent = S.view === "then" ? tags[0] : S.view === "now" ? tags[1] : S.view === "change" ? "Change, 1900 to 2023" : "";
+  document.getElementById("mapsrc").textContent = "Land use: HYDE 3.3 baseline (Klein Goldewijk et al., CC BY 4.0), 1900 and 2023, summed to 10 arc-minute squares. Forest zone: WWF biomes via HYDE. Land cover: MODIS MCD12C1 2019 (NASA). Outlines: Natural Earth. Base map tiles © Esri.";
+}
+function side() {
+  const box = document.getElementById("side"); let h = "";
+  if (S.sel && SITE.c[S.sel]) {
+    const iso = S.sel, c = SITE.c[iso]; const [land, ice, fz, c0, c1, g0, g1, k0, k1, w0, w1, p0, p1] = c; const fl = Math.max(1, land - ice);
+    const bar = (cr, gr) => `<div class="lubar">${[[cr, COL.crop], [gr, COL.graz], [Math.max(0, fl - cr - gr), isDark() ? "#3a3c34" : COL.other]].map(([v, col]) => `<span style="width:${100 * v / fl}%;background:${col}"></span>`).join("")}</div>`;
+    const p = v => f1(100 * v / fl) + "%";
+    h = `<h4>Country</h4><div class="big">${esc(CN(iso))}</div><p class="sub">${fmt(land)} km² of land${ice > 0 ? `, ${fmt(ice)} km² of it ice` : ""}</p>`;
+    h += `<h4>1900</h4>${bar(c0, g0)}<h4>2023</h4>${bar(c1, g1)}`;
+    h += `<table><tr><th></th><th class="num">1900</th><th class="num">2023</th></tr><tr><td><span class="sw" style="background:${COL.crop}"></span>Cropland</td><td class="num">${p(c0)}</td><td class="num">${p(c1)}</td></tr>
+<tr><td><span class="sw" style="background:${COL.graz}"></span>Grazing land</td><td class="num">${p(g0)}</td><td class="num">${p(g1)}</td></tr><tr><td>of which pasture</td><td class="num">${p(p0)}</td><td class="num">${p(p1)}</td></tr>
+<tr><td><b>All farmland</b></td><td class="num">${p(c0 + g0)}</td><td class="num">${p(c1 + g1)}</td></tr>
+${fz > 0.05 * land ? `<tr><td><span class="sw" style="background:${COL.cleared}"></span>Forest zone farmed</td><td class="num">${f1(100 * k0 / fz)}%</td><td class="num">${f1(100 * k1 / fz)}%</td></tr>` : ""}
+<tr><td><span class="sw" style="background:${AG.wild.c}"></span>Wildlands</td><td class="num">${p(w0)}</td><td class="num">${p(w1)}</td></tr></table>`;
+    const d = (c1 + g1) - (c0 + g0);
+    h += `<p class="sub">Farmland ${d >= 0 ? "grew" : "shrank"} by ${fmt(Math.abs(d))} km² between 1900 and 2023. Shares are of ice-free land, except the forest zone row (share of the forest zone, ${fmt(fz)} km²). HYDE 3.3.</p>`;
+    h += `<button class="btn" id="clearSel">Back to the world</button>`;
+    box.innerHTML = h; document.getElementById("clearSel").onclick = () => { S.sel = null; side(); };
+    return;
+  }
+  const H = R.hyde, F = R.forest;
+  const txt = { farm: `Cropland and grazing land together. In 1900 they covered ${Math.round(H.farm_1900_pct)}% of the ice-free land; in 2023, ${Math.round(H.farm_2023_pct)}%.`,
+    crop: `Land under arable and permanent crops: ${f1(H.crop_1900_km2 / 1e6)} million km² in 1900, ${f1(H.crop_2023_km2 / 1e6)} million km² in 2023.`,
+    graz: `Pasture and rangeland grazed by livestock: ${f1(H.graz_1900_km2 / 1e6)} million km² in 1900, ${f1(H.graz_2023_km2 / 1e6)} million km² in 2023. Much of it is natural grassland, scrub or savanna.`,
+    forest: `Where forest is the natural vegetation, how much is farmed: ${Math.round(F.cleared_1900_pct)}% in 1900, ${Math.round(F.cleared_2023_pct)}% in 2023. Green is unfarmed; terracotta farmed.`,
+    anth: `Anthromes sort land by people and use, from cities to wildlands. Used anthromes covered ${Math.round(R.anthromes.used_1900_pct)}% of the ice-free land in 1900 and ${Math.round(R.anthromes.used_2023_pct)}% in 2023.`,
+    modis: `On the left, the natural vegetation HYDE assumes: forest or not. On the right, what the MODIS satellite classified in 2019. Desert, forest and ice, as they are now.` }[S.layer];
+  h = `<h4>${esc(LAYERS.find(l => l[0] === S.layer)[1])}</h4><div class="big">${S.view === "swipe" ? "Drag the handle" : S.view === "change" ? "What changed" : S.view === "then" ? "1900" : "2023"}</div><p>${txt}</p><p class="sub">Click any square for its numbers in 1900 and 2023, or a country (or search) for its summary.</p>`;
+  h += `<h4>The world</h4><table><tr><th></th><th class="num">1900</th><th class="num">2023</th></tr><tr><td><span class="sw" style="background:${COL.crop}"></span>Cropland</td><td class="num">${f1(H.crop_1900_pct)}%</td><td class="num">${f1(H.crop_2023_pct)}%</td></tr><tr><td><span class="sw" style="background:${COL.graz}"></span>Grazing land</td><td class="num">${f1(H.graz_1900_pct)}%</td><td class="num">${f1(H.graz_2023_pct)}%</td></tr><tr><td><span class="sw" style="background:${COL.cleared}"></span>Forest zone farmed</td><td class="num">${f1(F.cleared_1900_pct)}%</td><td class="num">${f1(F.cleared_2023_pct)}%</td></tr></table><p class="sub">Shares of ice-free land (forest zone row: of the forest zone).</p>`;
+  box.innerHTML = h;
+}
+
+/* actions */
+function redrawGrid() { thenL.redraw(); nowL.redraw(); }
+async function setLayer(k) { S.layer = k; document.querySelectorAll("#layerTabs .btn").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k)); if (k === "modis" && S.view === "change") setView("swipe", true); await loadFor(k); redrawGrid(); legend(); side(); }
+function setView(v, quiet) { S.view = v; document.querySelectorAll("#viewTabs .btn").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === v)); if (!quiet) { redrawGrid(); legend(); side(); } setClip(); }
+(function tabs() {
+  const mk = (row, [k, l, c], fn) => { const b = document.createElement("button"); b.className = "btn"; b.dataset.k = k; b.style.setProperty("--tab", c); b.textContent = l; b.onclick = () => fn(k); row.appendChild(b); };
+  VIEWS.forEach(x => mk(document.getElementById("viewTabs"), x, setView)); LAYERS.forEach(x => mk(document.getElementById("layerTabs"), x, setLayer));
+})();
+const FIT = { USA: [[24, -125], [50, -66]], FRA: [[41.3, -5.2], [51.2, 9.6]], RUS: [[41, 27], [70, 140]], GBR: [[49.9, -8.2], [58.7, 1.8]], CAN: [[42, -140], [62, -52]], AUS: [[-44, 112], [-10, 154]], NZL: [[-47.5, 166], [-34, 179]], NOR: [[57.9, 4.5], [71.2, 31]], CHL: [[-56, -76], [-17.5, -66]] };
+function fitIso(iso) { const f = WORLD.features.find(x => x.properties.iso === iso); if (!f) return; map.fitBounds(FIT[iso] || L.geoJSON(f).getBounds(), { padding: [10, 10], maxZoom: 7 }); }
+function toMap() { if (small()) document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "start" }); }
+function pickCountry(iso, move) { S.sel = iso; if (move) { fitIso(iso); toMap(); } side(); }
+const HS = R.change.hotspots;
+const FOCUS = [["World", null]].concat(["cerrado", "amazon_arc", "pampas", "great_plains", "midwest", "east_us", "europe_w", "virgin_lands", "sahel", "se_asia", "wheatbelt"].map(k => [HS[k].name, [[HS[k].box[0], HS[k].box[2]], [HS[k].box[1], HS[k].box[3]]], k]));
+(function focusRow() { const row = document.getElementById("focusRow"); FOCUS.forEach(([n]) => { const b = document.createElement("button"); b.className = "btn"; b.textContent = n; b.onclick = () => focus(n); row.appendChild(b); }); })();
+function focus(n) { const f = FOCUS.find(x => x[0] === n); if (!f) return; if (!f[1]) { S.sel = null; map.setView([22, 12], small() ? 1 : 2); side(); toMap(); return; } map.fitBounds(f[1], { padding: [8, 8] }); toMap(); }
+document.querySelectorAll("[data-layer],[data-view]").forEach(b => b.onclick = e => { e.preventDefault(); if (b.dataset.view) setView(b.dataset.view, true); if (b.dataset.layer) setLayer(b.dataset.layer); else { redrawGrid(); legend(); } document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); });
+
+/* search: countries and hotspots */
+(function search() {
+  const inp = document.getElementById("q"), sug = document.getElementById("sug"); let opts = [], k = -1;
+  const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  function build(q) {
+    const nq = norm(q); if (nq.length < 2) return [];
+    const out = [];
+    Object.keys(SITE.c).forEach(iso => { const n = CN(iso); if (norm(n).includes(nq)) out.push({ t: "c", n, iso, s: norm(n).startsWith(nq) ? 4 : 1.2 }); });
+    FOCUS.slice(1).forEach(f => { if (norm(f[0]).includes(nq)) out.push({ t: "f", n: f[0], s: 3 }); });
+    return out.sort((a, b) => b.s - a.s).slice(0, 12);
+  }
+  const lab = o => o.t === "c" ? `${esc(o.n)} <span>country</span>` : `${esc(o.n)} <span>region</span>`;
+  const show = () => { sug.innerHTML = opts.map((o, i) => `<li role="option" aria-selected="${i === k}" data-i="${i}">${lab(o)}</li>`).join(""); sug.style.display = opts.length ? "block" : "none"; };
+  const choose = o => { sug.style.display = "none"; inp.value = o.n; inp.blur(); if (o.t === "c") pickCountry(o.iso, true); else focus(o.n); };
+  inp.addEventListener("input", () => { opts = build(inp.value); k = -1; show(); });
+  inp.addEventListener("keydown", e => { if (e.key === "ArrowDown") { k = Math.min(opts.length - 1, k + 1); show(); e.preventDefault(); } else if (e.key === "ArrowUp") { k = Math.max(0, k - 1); show(); e.preventDefault(); } else if (e.key === "Enter" && opts.length) { choose(opts[Math.max(0, k)]); } else if (e.key === "Escape") { sug.style.display = "none"; } });
+  sug.addEventListener("click", e => { const li = e.target.closest("li"); if (li) choose(opts[+li.dataset.i]); });
+  document.addEventListener("click", e => { if (!e.target.closest(".searchbox")) sug.style.display = "none"; });
+})();
+
+/* ---------- charts ---------- */
+function hbars(box, rows, opts) {
+  resp(box, (w, sm) => {
+    const maxLab = Math.max(...rows.map(r => String(r.lab ?? r.v).length)), lw = sm ? Math.min(150, w * .42) : Math.min(240, w * .4), rh = 26, h = rows.length * rh + 10;
+    const lo = Math.min(0, ...rows.map(r => Math.min(r.v, r.v0 ?? 0))), hi = Math.max(0, ...rows.map(r => Math.max(r.v, r.v0 || 0))) || 1;
+    const x0 = lw, x1 = w - 10 - maxLab * 7.2, sx = v => x0 + (x1 - x0) * (v - lo) / (hi - lo);
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": opts.aria }, box);
+    if (lo < 0) el("line", { x1: sx(0), x2: sx(0), y1: 0, y2: h, stroke: css("--muted"), "stroke-width": 1 }, svg);
+    rows.forEach((r, i) => {
+      const y = 4 + i * rh, a = sx(Math.min(0, r.v)), b = sx(Math.max(0, r.v)), bw = Math.max(2, b - a);
+      const cut = sm ? 18 : 30;
+      const t = lbl(svg, x0 - 8, y + 16, r.n.length > cut ? r.n.slice(0, cut - 1) + "." : r.n, "lab", "end");
+      const rect = el("rect", { x: a, y: y + 3, width: bw, height: rh - 9, fill: r.c, rx: 2 }, svg);
+      if (r.v0 != null) el("line", { x1: sx(r.v0), x2: sx(r.v0), y1: y, y2: y + rh - 3, stroke: css("--fg"), "stroke-width": 2 }, svg);
+      lbl(svg, (r.v >= 0 ? Math.max(b, r.v0 != null ? sx(r.v0) : 0) + 6 : Math.max(b, r.v0 != null ? sx(r.v0) : 0) + 6), y + 16, r.lab ?? fmt(r.v), "lab b");
+      [rect, t].forEach(e => { if (r.tip) { e.addEventListener("mousemove", ev => showTip(r.tip, ev.clientX, ev.clientY)); e.addEventListener("mouseleave", hideTip); } if (r.click) { e.style.cursor = "pointer"; e.addEventListener("click", r.click); } });
+    });
+  });
+}
+function stackbars(box, rows, keys, opts) {
+  // rows: [{n, v: {key: pct}}]; keys: [[key, label, colour]]
+  resp(box, (w, sm) => {
+    const lw = sm ? 52 : 70, rh = sm ? 46 : 52, h = rows.length * rh + 6;
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": opts.aria }, box);
+    rows.forEach((r, i) => {
+      const y = 4 + i * rh; lbl(svg, 0, y + rh / 2 + 2, r.n, "lab b"); let x = lw; const W = w - lw;
+      keys.forEach(([k, l, c]) => { const v = r.v[k] || 0, bw = W * v / 100; if (bw <= 0) return;
+        const rc = el("rect", { x, y: y + 4, width: Math.max(0, bw - 1), height: rh - 16, fill: c }, svg);
+        if (bw > (sm ? 34 : 42)) lbl(svg, x + 5, y + rh / 2 + 1, Math.round(v) + "%", "lab s" + (["settle", "wild", "forest", "past", "village", "semi"].includes(k) ? " w" : ""));
+        rc.addEventListener("mousemove", ev => showTip(`<b>${esc(l)}</b>, ${r.n}<br>${f1(v)}% ${opts.unit || ""}`, ev.clientX, ev.clientY)); rc.addEventListener("mouseleave", hideTip); x += bw; });
+    });
+    const lg = document.createElement("div"); lg.className = "legend"; lg.innerHTML = keys.map(([k, l, c]) => `<span><i style="background:${c}"></i>${esc(l)}</span>`).join(""); box.appendChild(lg);
+  });
+}
+function stackArea(box, S0, opts) {
+  resp(box, (w, sm) => {
+    const h = sm ? 240 : 300, padL = 40, padR = sm ? 10 : 100, padT = 12, padB = 24, yrs = S0.years, x0 = 1700, x1 = 2023;
+    const tot = yrs.map((y, i) => S0.crop[i] + S0.graz[i]); const hi = 52;
+    const sx = y => padL + (w - padL - padR) * (y - x0) / (x1 - x0), sy = v => padT + (h - padT - padB) * (1 - v / hi);
+    const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": opts.aria }, box);
+    for (let v = 0; v <= 50; v += 10) { el("line", { x1: padL, x2: w - padR, y1: sy(v), y2: sy(v), stroke: css("--rule") }, svg); lbl(svg, padL - 6, sy(v) + 4, v, "lab s m", "end"); }
+    [1700, 1750, 1800, 1850, 1900, 1950, 2000].forEach(y => lbl(svg, sx(y), h - 6, y, "lab s m", "middle"));
+    const area = (lo, hi2, c) => { let d = "M" + yrs.map((y, i) => `${sx(y).toFixed(1)} ${sy(hi2[i]).toFixed(1)}`).join("L"); d += "L" + yrs.slice().reverse().map((y, j) => { const i = yrs.length - 1 - j; return `${sx(y).toFixed(1)} ${sy(lo[i]).toFixed(1)}`; }).join("L") + "Z"; el("path", { d, fill: c, opacity: .92 }, svg); };
+    area(yrs.map(() => 0), S0.crop, COL.crop); area(S0.crop, tot, COL.graz);
+    el("line", { x1: sx(1900), x2: sx(1900), y1: padT, y2: h - padB, stroke: css("--muted"), "stroke-dasharray": "3 3" }, svg);
+    const H = R.hyde; [[1900, H.crop_1900_km2, H.farm_1900_km2], [2023, H.crop_2023_km2, H.farm_2023_km2]].forEach(([y, c, f]) => { [c, f].forEach(v => el("circle", { cx: sx(y), cy: sy(v / 1e6), r: 4, fill: css("--card"), stroke: css("--fg"), "stroke-width": 1.6 }, svg)); });
+    if (!sm) { const li = yrs.length - 1; lbl(svg, w - padR + 8, sy(S0.crop[li] / 2) + 4, "Cropland", "lab s").setAttribute("style", `fill:${COL.crop}`); lbl(svg, w - padR + 8, sy((S0.crop[li] + tot[li]) / 2) + 4, "Grazing land", "lab s").setAttribute("style", `fill:${mix(COL.graz, "#000000", .3)}`); lbl(svg, w - padR + 8, sy(R.hyde.farm_2023_km2 / 1e6) - 8, "○ HYDE 3.3", "lab s m"); }
+    const hover = el("rect", { x: padL, y: padT, width: w - padL - padR, height: h - padT - padB, fill: "transparent" }, svg);
+    hover.addEventListener("mousemove", ev => { const r = svg.getBoundingClientRect(); const x = (ev.clientX - r.left) * w / r.width; const yr = x0 + (x - padL) / (w - padL - padR) * (x1 - x0); let i = 0; yrs.forEach((y, j) => { if (Math.abs(y - yr) < Math.abs(yrs[i] - yr)) i = j; });
+      showTip(`<b>${yrs[i]}</b> (HYDE 3.2)<br>Cropland: ${f1(S0.crop[i])} million km²<br>Grazing land: ${f1(S0.graz[i])} million km²`, ev.clientX, ev.clientY); });
+    hover.addEventListener("mouseleave", hideTip);
+    if (sm) { const lg = document.createElement("div"); lg.className = "legend"; lg.innerHTML = `<span><i style="background:${COL.crop}"></i>Cropland</span><span><i style="background:${COL.graz}"></i>Grazing land</span><span>○ HYDE 3.3, 1900 and 2023</span>`; box.appendChild(lg); }
+  });
+}
+(function charts() {
+  const H = R.hyde, A = R.anthromes;
+  const other = y => 100 - H[`crop_${y}_pct`] - H[`past_${y}_pct`] - H[`range_${y}_pct`] - H[`conv_${y}_pct`];
+  stackbars(document.getElementById("compChart"), [1900, 2023].map(y => ({ n: String(y), v: { crop: H[`crop_${y}_pct`], past: H[`past_${y}_pct`], conv: H[`conv_${y}_pct`], range: H[`range_${y}_pct`], other: other(y) } })),
+    [["crop", "Cropland", COL.crop], ["past", "Pasture", COL.past], ["conv", "Converted rangeland (once forest)", COL.conv], ["range", "Rangeland", COL.range], ["other", "Not farmed", isDark() ? "#3a3c34" : COL.other]], { aria: "Ice-free land by use in 1900 and 2023", unit: "of ice-free land" });
+  stackArea(document.getElementById("stackChart"), R.series, { aria: "World cropland and grazing land since 1700" });
+  const toMapReg = n => { const b = { "South America": [[-40, -80], [10, -35]], "Sub-Saharan Africa": [[-35, -18], [17, 50]], "East Asia": [[18, 73], [53, 145]], "Oceania": [[-45, 112], [-10, 180]], "North Africa and West Asia": [[12, -17], [42, 63]], "North America": [[24, -130], [60, -60]], "Central Asia": [[35, 46], [55, 88]], "South Asia": [[5, 60], [37, 97]], "Southeast Asia": [[-11, 92], [24, 141]], "Central America and Caribbean": [[7, -118], [33, -59]], "Russia": [[41, 27], [72, 180]], "Europe": [[35, -11], [71, 40]] }[n]; if (b) { document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); setTimeout(() => map.fitBounds(b), 350); } };
+  hbars(document.getElementById("regChart"), R.regions.map(r => ({ n: r.name, v: r.farm_chg_km2 / 1e6, c: r.farm_chg_km2 >= 0 ? COL.gain : COL.loss, lab: `${r.farm_chg_km2 >= 0 ? "+" : ""}${f1(r.farm_chg_km2 / 1e6)}  (${Math.round(r.farm_1900_pct)}% → ${Math.round(r.farm_2023_pct)}%)`, click: () => toMapReg(r.name),
+    tip: `<b>${esc(r.name)}</b><br>Farmland 1900: ${f1(r.farm_1900_km2 / 1e6)} million km² (${Math.round(r.farm_1900_pct)}%)<br>2023: ${f1(r.farm_2023_km2 / 1e6)} million km² (${Math.round(r.farm_2023_pct)}%)` })), { aria: "Change in farmland by region" });
+  const C = R.change, cr = C.top_farm_gain.slice(0, 8).concat(C.top_farm_loss.slice(0, 6).reverse());
+  hbars(document.getElementById("cChart"), cr.map(x => ({ n: x.name, v: x.v / 1000, c: x.v >= 0 ? COL.gain : COL.loss, lab: (x.v >= 0 ? "+" : "") + fmt(x.v / 1000), click: () => { setView("change", true); setLayer("farm"); document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); setTimeout(() => pickCountry(x.iso, true), 350); } })), { aria: "Biggest changes in farmland by country" });
+  hbars(document.getElementById("forChart"), R.regions.filter(r => r.forest_zone_km2 > 5e5).map(r => ({ n: r.name, v: 100 * r.cleared_2023_km2 / r.forest_zone_km2, v0: 100 * r.cleared_1900_km2 / r.forest_zone_km2, c: r.cleared_chg_km2 >= 0 ? COL.cleared : COL.loss, lab: `${Math.round(100 * r.cleared_1900_km2 / r.forest_zone_km2)}% → ${Math.round(100 * r.cleared_2023_km2 / r.forest_zone_km2)}%` })).sort((a, b) => b.v - a.v), { aria: "Share of the forest zone farmed by region" });
+  stackbars(document.getElementById("anthChart"), [1900, 2023].map(y => ({ n: String(y), v: Object.fromEntries(["settle", "village", "crop", "range", "semi", "wild"].map(g => [g, A[`${g}_${y}_pct`]])) })),
+    SITE.agroup.filter(g => g[0] !== "ice").map(([k, l, c]) => [k, l, c]), { aria: "Anthromes in 1900 and 2023", unit: "of ice-free land" });
+  const hc = document.getElementById("hotCards");
+  [["cerrado", "#B5562E"], ["se_asia", "#C9921A"], ["sahel", "#9A5A22"], ["wheatbelt", "#6F9A3E"], ["europe_w", "#2E7D6B"], ["east_us", "#2E7D6B"]].forEach(([k, c]) => {
+    const x = HS[k], d = document.createElement("div"); d.className = "card"; d.style.setProperty("--c", c);
+    d.innerHTML = `<b>${esc(x.name)}</b><div class="big">${Math.round(x.farm_1900_pct)}% → ${Math.round(x.farm_2023_pct)}% <span>farmed</span></div><span>Cropland ${Math.round(x.crop_1900_pct)}% → ${Math.round(x.crop_2023_pct)}%</span><br><button class="btn">Show on the map</button>`;
+    d.querySelector("button").onclick = () => { setView("swipe", true); setLayer("farm"); document.getElementById("atlas").scrollIntoView({ behavior: "smooth" }); setTimeout(() => focus(x.name), 350); }; hc.appendChild(d); });
+})();
+
+/* ---------- start ---------- */
+map.on("zoomend moveend", placeNames);
+document.getElementById("theme").onclick = () => { const r = document.documentElement; r.dataset.theme = isDark() ? "light" : "dark"; setTiles(); bLayer.setStyle({ color: isDark() ? "#6b6e62" : "#8f8772" }); redrawGrid(); legend(); side(); redraws.forEach(f => f()); };
+setTiles(); setView("swipe", true); setLayer("farm"); placeNames();
+</script>
+/*FULLSCREEN*/
+</body>
+</html>

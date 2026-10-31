@@ -1,0 +1,146 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Pagella}
+\newfontfamily\headfont{Inter}[UprightFont=*-ExtraBold,BoldFont=*-ExtraBold,Extension=.otf,Path=/usr/share/fonts/opentype/inter/]
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{graphicx,booktabs,float,caption,array,xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage[round]{natbib}
+\usepackage{setspace}
+\setstretch{1.05}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.75}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\titleformat{\section}{\headfont\Large}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\headfont\large}{\thesubsection}{0.8em}{}
+\captionsetup{font=small,labelfont=bf}
+\urlstyle{same}
+\hypersetup{pdftitle={Desert, Forest, Ice: the World's Land in 1900 and Now},pdfauthor={Tristan Hotham}}
+
+\begin{document}
+\begin{center}
+{\Large\bfseries Desert, Forest, Ice\par}
+\vspace{0.4em}
+{\large The world's land in 1900 and now, from HYDE 3.3\par}
+\vspace{1.2em}
+{\large Tristan Hotham\par}
+\vspace{0.3em}
+{\small Independent researcher\\
+ORCID: 0000-0003-4931-9349\\
+DOI: \href{https://doi.org/10.5281/zenodo.23847971}{https://doi.org/10.5281/zenodo.23847971}\par}
+\vspace{0.8em}
+2026
+\end{center}
+
+\begin{quote}
+\small
+\begin{center}\textbf{Abstract}\end{center}
+I compare the use of the world's land in 1900 and 2023 using the gridded estimates of the History Database of the Global Environment, version 3.3 (HYDE), at 5 arc-minutes, with HYDE's anthromes and its map of the potential forest zone, and check the present against MODIS satellite land cover for 2019. In HYDE's baseline estimate, cropland grew from {{hyde.crop_1900_km2|m1}} to {{hyde.crop_2023_km2|m1}} million km\textsuperscript{2} and grazing land from {{hyde.graz_1900_km2|m1}} to {{hyde.graz_2023_km2|m1}} million km\textsuperscript{2}, so that farmland rose from {{hyde.farm_1900_pct|f1}}\% to {{hyde.farm_2023_pct|f1}}\% of the ice-free land outside Antarctica. The largest gains were in sub-Saharan Africa and South America, and by country in China, Brazil and Australia; Europe is the only region with less farmland than in 1900. Within the potential forest zone the farmed share rose from {{forest.cleared_1900_pct|f1}}\% to {{forest.cleared_2023_pct|f1}}\%, a net {{forest.net_km2|m1}} million km\textsuperscript{2}, the result of {{forest.gross_gain_km2|m1}} million km\textsuperscript{2} going into farming, mostly in the tropics, and {{forest.gross_loss_km2|m1}} million km\textsuperscript{2} going out of it, {{change.gross_loss_share_us_europe_russia_pct|pc}} of that in Europe, Russia and the United States. The anthromes show that wildlands barely changed in extent ({{anthromes.wild_1900_pct|f1}}\% to {{anthromes.wild_2023_pct|f1}}\% of ice-free land) while seminatural lands shrank from {{anthromes.semi_1900_pct|f1}}\% to {{anthromes.semi_2023_pct|f1}}\%. I discuss what a modelled reconstruction of 1900 can and cannot show.
+
+\textbf{Keywords:} land use; land cover; HYDE; anthromes; deforestation; reforestation; farmland; historical geography; maps
+\end{quote}
+
+\section{Introduction}
+The twentieth century remade the surface of the land. Railways, steamships, refrigeration and later tractors, fertiliser and roads into the tropics brought new land into farming on every continent, while in parts of Europe and North America farms were abandoned and forests grew back \citep{williams,ramankutty}. Several groups have reconstructed this history on global grids: the SAGE cropland and pasture maps \citep{ramankutty}, the Land Use Harmonization dataset used by climate models \citep{luh2}, and HYDE \citep{hyde32}, which reaches back to 10,000 BCE and is updated regularly. Their maps are used mostly as model inputs; they are rarely looked at.
+
+This study takes the latest HYDE release, 3.3 \citep{hyde33}, and asks simple questions of two of its time slices, 1900 and 2023. How much of the world's ice-free land was farmed, and how much is now? Where did the change happen? How much of the land where forest would naturally grow is farmed, and where has farmland retreated? How have the anthromes, HYDE's classes of land by people and use, shifted between wild, seminatural and used? I present the answers as an interactive swipe map (\url{{{meta_page}}}) and in this short descriptive paper. It describes a reconstruction, not observations of 1900, and Section~\ref{sec:limits} sets out what that means.
+
+\section{Data}
+\textbf{HYDE 3.3.} The History Database of the Global Environment \citep{hyde33,hyde32} estimates land use and population on a global grid of 5 arc-minutes (4320 by 2160 cells; about 9 km at the equator), excluding Antarctica. I use the baseline scenario (\texttt{hyde33\_c7\_base\_mrt2023}) for 1900 and 2023: cropland, pasture, rangeland and converted rangeland in km\textsuperscript{2} per cell, the anthromes for both years, and the general files giving each cell's maximum land area, its country and its potential forest status. HYDE allocates national and subnational totals of cropland and grazing land to the grid using weighting maps of population, suitability and terrain; before FAO statistics begin in 1961 the totals come from historical sources and from population and land per person. Grazing land is divided into pasture (more intensively managed, in wetter areas), rangeland (less intensively used, mostly in drier areas) and converted rangeland, rangeland in the forest zone that is assumed to have been cleared. HYDE 3.3 is published under CC BY 4.0.
+
+\textbf{Anthromes.} HYDE provides anthromes \citep{ellis2010,ellis2021} for each time slice: 20 classes of land from urban and mixed settlements, through villages, croplands and rangelands, to seminatural woodlands and drylands and wild woodlands, drylands and ice. The split between woodlands and drylands follows potential natural vegetation.
+
+\textbf{Potential forest zone.} HYDE's general file \texttt{forest\_wwf\_cr} marks the cells whose potential natural vegetation is forest, from the WWF terrestrial ecoregions \citep{olson}. I call these cells the forest zone.
+
+\textbf{MODIS.} For a present-day check I use the MODIS MCD12C1 version 6 land cover type product for 2019 \citep{modis}, the majority IGBP class on a 0.05 degree grid (public domain).
+
+\textbf{HYDE 3.2 world series.} For the long series in Figure~\ref{fig:series}, I use the world totals of cropland and grazing land from HYDE 3.2 for 1700 to 2016 as republished by Our World in Data \citep{owid}, since the HYDE 3.3 time slices I used are only 1900 and 2023. The two versions differ: HYDE 3.2 gives {{series.crop_1900_v32_km2|m1}} million km\textsuperscript{2} of cropland in 1900 against {{hyde.crop_1900_km2|m1}} million in 3.3.
+
+\textbf{Geography.} Country names and outlines come from Natural Earth \citep{naturalearth}; HYDE's numeric country codes are matched to them by ISO number.
+
+\section{Methods}
+\textbf{Farmland.} Farmland is cropland plus grazing land, where grazing land is pasture, rangeland and converted rangeland (HYDE's own grazing total equals this sum to within rounding, and converted rangeland lies only in the forest zone). Shares are of HYDE's maximum land area. Ice-free land excludes land in cells of the anthrome `ice, uninhabited' in 2023 ({{hyde.ice_2023_km2|m1}} million km\textsuperscript{2}, almost all in Greenland and the Arctic islands), leaving {{hyde.icefree_km2|m1}} million km\textsuperscript{2}.
+
+\textbf{Forest zone.} In each forest-zone cell, the farmed area is cropland plus pasture plus converted rangeland, and the unfarmed area is the rest of the land. This is a measure of farming in the forest zone, not of forest: logging, fire, plantations and natural openings are invisible to it. Gross gains and losses are sums of cell-by-cell increases and decreases between 1900 and 2023; the net change is their difference.
+
+\textbf{Countries, regions and hotspots.} I summed cells by HYDE's country grid and grouped countries into twelve regions using Natural Earth subregions, with Russia on its own. I also defined eleven boxes for named regions (Table~\ref{tab:hot}), restricted to one country where the name implies it (for example Brazil for the Cerrado box). The boxes are approximate and meant for comparison, not as ecological boundaries.
+
+\textbf{Comparison with MODIS.} I aggregated both datasets to a quarter-degree grid (3 by 3 HYDE cells; 5 by 5 MODIS cells), computed for each the share of forest-zone land that HYDE has farmed in 2023 and the share that MODIS classifies as neither forest (IGBP classes 1 to 5) nor woody savanna (class 8), and correlated the two across cells with at least 50 km\textsuperscript{2} of forest zone. MODIS cropland is class 12 plus half of the cropland and natural vegetation mosaic (class 14).
+
+\textbf{Maps.} The figures use the native 5 arc-minute grid in the Equal Earth projection; the interactive map sums the grid to 10 arc-minutes. All numbers in this paper are computed by the scripts in the repository and stored in \texttt{data/results.json}.
+
+\section{Results}
+\subsection{Farmland}
+HYDE estimates {{hyde.crop_1900_km2|m1}} million km\textsuperscript{2} of cropland in 1900 and {{hyde.crop_2023_km2|m1}} million in 2023 (×{{hyde.crop_x|f2}}), and {{hyde.graz_1900_km2|m1}} and {{hyde.graz_2023_km2|m1}} million km\textsuperscript{2} of grazing land (×{{hyde.graz_x|f2}}). Farmland covered {{hyde.farm_1900_pct|f1}}\% of the ice-free land in 1900 and {{hyde.farm_2023_pct|f1}}\% in 2023 (Figure~\ref{fig:maps}): a net gain of {{hyde.farm_gain_km2|m1}} million km\textsuperscript{2}, the result of {{hyde.farm_gross_gain_km2|m1}} million km\textsuperscript{2} of cell-level gains and {{hyde.farm_gross_loss_km2|m1}} million of losses. Rangeland is the largest single component in both years ({{hyde.range_1900_pct|f1}}\% and {{hyde.range_2023_pct|f1}}\% of ice-free land), followed by cropland ({{hyde.crop_1900_pct|f1}}\% and {{hyde.crop_2023_pct|f1}}\%), pasture ({{hyde.past_1900_pct|f1}}\% and {{hyde.past_2023_pct|f1}}\%) and converted rangeland ({{hyde.conv_1900_pct|f1}}\% and {{hyde.conv_2023_pct|f1}}\%).
+
+\begin{figure}[tbp]\centering\includegraphics[width=.92\textwidth]{f_maps.png}
+\caption{Farmland (cropland plus grazing land) as a share of the land in each 5 arc-minute cell, 1900 and 2023. HYDE 3.3 baseline.}\label{fig:maps}\end{figure}
+
+In the longer HYDE 3.2 series (Figure~\ref{fig:series}), world farmland grew by {{series.farm_1700_1900_gain_km2|m1}} million km\textsuperscript{2} between 1700 and 1900, by {{series.farm_1900_1950_gain_km2|m1}} million in the next fifty years, by {{series.farm_1950_1990_gain_km2|m1}} million from 1950 to 1990, and by only {{series.farm_1990_2016_gain_km2|m1}} million from 1990 to 2016.
+
+\begin{figure}[tbp]\centering\includegraphics[width=.86\textwidth]{f_series.png}
+\caption{World cropland and grazing land, 1700 to 2016, HYDE 3.2 via Our World in Data. Dots: HYDE 3.3 for 1900 and 2023.}\label{fig:series}\end{figure}
+
+\subsection{Where the change happened}
+Every region except Europe gained farmland (Figure~\ref{fig:regions}, Table~\ref{tab:reg}). Sub-Saharan Africa gained the most ({{regions.0.farm_chg_km2|m1}} million km\textsuperscript{2}), then South America ({{regions.1.farm_chg_km2|m1}}), East Asia and Oceania; Europe lost {{change.europe.farm_chg_km2|am1}} million km\textsuperscript{2}. Of the {{change.n_countries|int}} countries and territories with at least 1,000 km\textsuperscript{2} of land, farmland shrank in {{change.n_farm_down|int}}. The largest national gains were in China ({{change.top_farm_gain.0.v|m1}} million km\textsuperscript{2}), Brazil ({{change.top_farm_gain.1.v|m1}}), Australia ({{change.top_farm_gain.2.v|m1}}), the United States ({{change.top_farm_gain.3.v|m1}}), Argentina and Kazakhstan; the largest losses in France, Poland, Italy and Germany. In Australia and China most of the gain was grazing land; in Brazil {{change.BRA.cleared_chg_km2|m1}} million km\textsuperscript{2} of the {{change.BRA.farm_chg_km2|m1}} million gained was in the forest zone.
+
+{{TABLE_REG}}
+
+\begin{figure}[tbp]\centering\includegraphics[width=.86\textwidth]{f_regions.png}
+\caption{Change in farmland by region, 1900 to 2023, with the share of ice-free land farmed in each year.}\label{fig:regions}\end{figure}
+
+The change map (Figure~\ref{fig:change}) shows the frontiers. The Brazilian Cerrado box went from {{change.hotspots.cerrado.farm_1900_pct|f1}}\% farmed to {{change.hotspots.cerrado.farm_2023_pct|f1}}\%, the Sahel from {{change.hotspots.sahel.farm_1900_pct|f1}}\% to {{change.hotspots.sahel.farm_2023_pct|f1}}\%, Southeast Asia from {{change.hotspots.se_asia.farm_1900_pct|f1}}\% to {{change.hotspots.se_asia.farm_2023_pct|f1}}\% (mostly cropland), and the Australian wheat belt from {{change.hotspots.wheatbelt.farm_1900_pct|f1}}\% to {{change.hotspots.wheatbelt.farm_2023_pct|f1}}\%. Older frontiers changed less: the US Midwest box was {{change.hotspots.midwest.farm_1900_pct|f1}}\% farmed in 1900 and {{change.hotspots.midwest.farm_2023_pct|f1}}\% in 2023, though its cropland share fell from {{change.hotspots.midwest.crop_1900_pct|f1}}\% to {{change.hotspots.midwest.crop_2023_pct|f1}}\%. Western and central Europe fell from {{change.hotspots.europe_w.farm_1900_pct|f1}}\% to {{change.hotspots.europe_w.farm_2023_pct|f1}}\%, and the eastern United States from {{change.hotspots.east_us.farm_1900_pct|f1}}\% to {{change.hotspots.east_us.farm_2023_pct|f1}}\%.
+
+{{TABLE_HOT}}
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_change.png}
+\caption{Change in farmland share of the land, percentage points, 1900 to 2023.}\label{fig:change}\end{figure}
+
+\subsection{The forest zone}
+The forest zone covers {{forest.zone_km2|m1}} million km\textsuperscript{2}, {{forest.zone_pct_icefree|f1}}\% of the ice-free land. Its farmed share rose from {{forest.cleared_1900_pct|f1}}\% in 1900 to {{forest.cleared_2023_pct|f1}}\% in 2023 (Figure~\ref{fig:forest}). The net gain, {{forest.net_km2|m1}} million km\textsuperscript{2}, is {{forest.share_farm_gain_in_zone_pct|pc}} of the world's net gain in farmland; the rest of the new farmland is outside the forest zone, in grasslands, savannas and drylands. Gross gains of {{forest.gross_gain_km2|m1}} million km\textsuperscript{2} were led by Brazil ({{change.top_clear_gain.0.v|m1}} million), China ({{change.top_clear_gain.1.v|m1}}), Indonesia ({{change.top_clear_gain.2.v|m1}}), Australia and India. Gross losses of {{forest.gross_loss_km2|m1}} million km\textsuperscript{2} were concentrated in Europe, Russia and the United States ({{change.gross_loss_share_us_europe_russia_pct|pc}}); France, Poland, Italy and Germany had the largest net declines. In the United States east of 90\textdegree W the farmed share of the forest zone fell from {{change.east_us.c1900_pct|f1}}\% to {{change.east_us.c2023_pct|f1}}\%, and this area holds {{change.east_us.share_of_us_gross_loss_pct|pc}} of the country's gross decline. In Europe it fell from {{change.europe.cleared_1900_pct|f1}}\% to {{change.europe.cleared_2023_pct|f1}}\%.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_forest.png}
+\caption{The potential forest zone in 2023: unfarmed and farmed land, and cells where the farmed share rose or fell by at least 10 percentage points since 1900.}\label{fig:forest}\end{figure}
+
+\subsection{Anthromes}
+Used anthromes (dense settlements, villages, croplands and rangelands) covered {{anthromes.used_1900_pct|f1}}\% of ice-free land in 1900 and {{anthromes.used_2023_pct|f1}}\% in 2023 (Figure~\ref{fig:anth}). Wildlands changed little ({{anthromes.wild_1900_pct|f1}}\% to {{anthromes.wild_2023_pct|f1}}\%); {{anthromes.wild1900_to.wild|f1}}\% of the land that was wild in 1900 is still wild, and {{anthromes.wild1900_to.range|f1}}\% became rangeland. Wild woodlands shrank by {{anthromes.wildwood_chg_pct|abs1}}\%, and in 2023 {{anthromes.wildwood_2023_north50_pct|pc}} of them lie north of 50\textdegree N. The large change was in seminatural lands, which fell from {{anthromes.semi_1900_pct|f1}}\% to {{anthromes.semi_2023_pct|f1}}\%, while villages rose from {{anthromes.village_1900_pct|f1}}\% to {{anthromes.village_2023_pct|f1}}\% and dense settlements from {{anthromes.settle_1900_pct|f1}}\% to {{anthromes.settle_2023_pct|f1}}\%.
+
+\begin{figure}[tbp]\centering\includegraphics[width=.9\textwidth]{f_anthromes.png}
+\caption{Anthrome groups as a share of ice-free land, 1900 and 2023. HYDE 3.3.}\label{fig:anth}\end{figure}
+
+\subsection{Comparison with satellite land cover}
+MODIS classifies {{modis.forest_km2|m1}} million km\textsuperscript{2} as forest in 2019 and {{modis.woody_savanna_km2|m1}} million as woody savanna, {{modis.barren_km2|m1}} million as barren and {{modis.ice_km2|m1}} million as snow and ice on HYDE's land (Figure~\ref{fig:modis}). Within the forest zone, MODIS finds forest on {{modis.forest_in_zone_pct|f1}}\% and forest or woody savanna on {{modis.treecover_in_zone_pct|f1}}\%, against {{forest.uncleared_2023_pct|f1}}\% that HYDE has unfarmed. Across {{modis.n_cells|int}} quarter-degree cells, the correlation between HYDE's farmed share and the MODIS share without forest or woody savanna is {{modis.r_cleared_vs_nontree|f2}}. MODIS cropland ({{modis.crop_km2|m1}} million km\textsuperscript{2}) is {{modis.crop_vs_hyde_pct|pc}} of HYDE's 2023 cropland. The two datasets measure different things: HYDE land use from statistics, MODIS land cover from reflectance, and the gap between unfarmed and forested land is degraded, logged, burnt or naturally open land that HYDE does not distinguish.
+
+\begin{figure}[tbp]\centering\includegraphics[width=\textwidth]{f_modis.png}
+\caption{Land cover in 2019 from MODIS MCD12C1 (IGBP classes, grouped for display).}\label{fig:modis}\end{figure}
+
+\section{Limitations}\label{sec:limits}
+First, the 1900 map is a reconstruction. HYDE's totals for 1900 rest on historical statistics of variable quality and, where these are lacking, on population and assumed land per person; their spatial pattern comes from allocation rules. Country and regional totals are more reliable than individual cells, and uncertainty is largest where statistics are weakest, in much of Africa, Asia and Latin America. HYDE 3.3 also offers lower and upper estimates, not used here. Second, grazing land is a broad category: most of it is rangeland, which may look natural, and the boundary between grazed and ungrazed land is uncertain. Third, the forest zone is potential vegetation, and farming is the only change HYDE records in it; it does not measure forest cover, logging, fire, plantations or natural regrowth on unfarmed land. Fourth, the long time series uses HYDE 3.2, which differs in detail from 3.3. Fifth, MODIS is itself a classification with errors, at a different date and with different definitions, so the comparison tests consistency rather than accuracy. Finally, the regions and hotspot boxes are my choices.
+
+\section{Conclusion}
+In HYDE's reconstruction the share of the world's ice-free land used for crops and grazing roughly doubled between 1900 and 2023, from about a fifth to more than a third. The expansion moved from the temperate frontiers of the nineteenth century into the tropics, the steppes and the drylands; Europe and the eastern United States gave land back. The wild that remains is mostly the land that was always hard to farm. Set side by side on a swipe map, the two years make the scale and geography of that change easy to see, while the data's limits remain visible.
+
+\section*{Data and code availability}
+The interactive map is at \url{{{meta_page}}}. Data and code are at \url{{{meta_repo}}} and archived with this paper at \url{https://doi.org/10.5281/zenodo.23847971}. Derived data are released under CC BY 4.0 and code under the MIT licence. HYDE 3.3 is CC BY 4.0 (DOI 10.24416/UU01-94FNH0); MODIS data are public domain; Natural Earth is public domain.
+
+\section*{AI statement}
+I wrote the text, with drafting and editing assistance from Claude (Anthropic), which also helped prepare the analysis code. I reviewed and checked all text and results.
+
+\begin{thebibliography}{12}
+\bibitem[Ellis et al.(2010)]{ellis2010} Ellis, E.C., Klein Goldewijk, K., Siebert, S., Lightman, D. and Ramankutty, N. (2010) Anthropogenic transformation of the biomes, 1700 to 2000. \emph{Global Ecology and Biogeography}, 19, 589 to 606.
+\bibitem[Ellis et al.(2021)]{ellis2021} Ellis, E.C., Gauthier, N., Klein Goldewijk, K. et al. (2021) People have shaped most of terrestrial nature for at least 12,000 years. \emph{Proceedings of the National Academy of Sciences}, 118, e2023483118.
+\bibitem[Friedl and Sulla-Menashe(2019)]{modis} Friedl, M. and Sulla-Menashe, D. (2019) MCD12C1 MODIS/Terra+Aqua Land Cover Type Yearly L3 Global 0.05Deg CMG V006. NASA EOSDIS Land Processes DAAC. \url{https://doi.org/10.5067/MODIS/MCD12C1.006}
+\bibitem[Hurtt et al.(2020)]{luh2} Hurtt, G.C., Chini, L., Sahajpal, R. et al. (2020) Harmonization of global land use change and management for the period 850 to 2100 (LUH2) for CMIP6. \emph{Geoscientific Model Development}, 13, 5425 to 5464.
+\bibitem[Klein Goldewijk et al.(2017)]{hyde32} Klein Goldewijk, K., Beusen, A., Doelman, J. and Stehfest, E. (2017) Anthropogenic land use estimates for the Holocene: HYDE 3.2. \emph{Earth System Science Data}, 9, 927 to 953.
+\bibitem[Klein Goldewijk et al.(2023)]{hyde33} Klein Goldewijk, K., Beusen, A., Doelman, J. and Stehfest, E. (2023) History Database of the Global Environment 3.3 (HYDE 3.3). Utrecht University. CC BY 4.0. \url{https://doi.org/10.24416/UU01-94FNH0}
+\bibitem[Natural Earth(2026)]{naturalearth} Natural Earth (2026) Admin 0 countries and populated places. Public domain. \url{https://www.naturalearthdata.com/}
+\bibitem[Olson et al.(2001)]{olson} Olson, D.M., Dinerstein, E., Wikramanayake, E.D. et al. (2001) Terrestrial ecoregions of the world: a new map of life on Earth. \emph{BioScience}, 51, 933 to 938.
+\bibitem[Our World in Data(2017)]{owid} Our World in Data (2017) Land Use Data, HYDE (2017). owid-datasets repository on GitHub. CC BY 4.0.
+\bibitem[Ramankutty and Foley(1999)]{ramankutty} Ramankutty, N. and Foley, J.A. (1999) Estimating historical changes in global land cover: croplands from 1700 to 1992. \emph{Global Biogeochemical Cycles}, 13, 997 to 1027.
+\bibitem[Williams(2003)]{williams} Williams, M. (2003) \emph{Deforesting the Earth: From Prehistory to Global Crisis}. University of Chicago Press.
+\end{thebibliography}
+\end{document}
